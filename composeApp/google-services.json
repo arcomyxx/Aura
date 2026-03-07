@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "962323891392",
+    "project_id": "aura-7d0fb",
+    "storage_bucket": "aura-7d0fb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962323891392:android:9fbbfda8da30e25d46d925",
+        "android_client_info": {
+          "package_name": "com.dubois.aura"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5tC_F0zcR_juRXmoDQKFZrfd5-DiXaRg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
