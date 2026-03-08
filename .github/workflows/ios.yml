@@ -1,5 +1,5 @@
 name: iOS Build
-on: [push]
+on: [ push ]
 jobs:
   build:
     runs-on: macos-latest
@@ -10,6 +10,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Grant Gradlew permissions
+        run: chmod +x gradlew
 
       - name: Build iOS Framework
         run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
