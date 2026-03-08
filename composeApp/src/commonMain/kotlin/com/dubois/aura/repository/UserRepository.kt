@@ -11,7 +11,6 @@ class UserRepository {
     private val auth = Firebase.auth
     private val firestore = Firebase.firestore
 
-    // Inscription
     suspend fun register(email: String, password: String, name: String): Result<UserProfile> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password)
@@ -24,10 +23,9 @@ class UserRepository {
                 createdAt = Clock.System.now().toEpochMilliseconds(),
             )
 
-            // Sauvegarde dans Firestore
             firestore.collection("users")
                 .document(uid)
-                .set(profile)
+                .set(UserProfile.serializer(), profile)
 
             Result.success(profile)
         } catch (e: Exception) {
@@ -35,7 +33,6 @@ class UserRepository {
         }
     }
 
-    // Connexion
     suspend fun login(email: String, password: String): Result<UserProfile> {
         return try {
             val result = auth.signInWithEmailAndPassword(email, password)
@@ -47,13 +44,11 @@ class UserRepository {
         }
     }
 
-    // Récupérer le profil
     suspend fun getProfile(uid: String): UserProfile {
         val doc = firestore.collection("users").document(uid).get()
-        return doc.data<UserProfile>()
+        return doc.data(UserProfile.serializer())
     }
 
-    // Mettre à jour le profil
     suspend fun updateProfile(uid: String, name: String, bio: String): Result<Unit> {
         return try {
             firestore.collection("users").document(uid).update(
@@ -65,9 +60,7 @@ class UserRepository {
         }
     }
 
-    // Déconnexion
     suspend fun logout() = auth.signOut()
 
-    // Utilisateur courant
     fun currentUser() = auth.currentUser
 }
