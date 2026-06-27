@@ -55,6 +55,27 @@ jobs:
             exit 1
           fi
 
+      # Les identifiants de la cle API doivent etre bruts (pas de nom/libelle, pas d'espace).
+      - name: Verifier les identifiants API
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          ok=1
+          if printf '%s' "$ASC_KEY_ID" | grep -qE '^[A-Z0-9]{10}$'; then
+            echo "ASC_KEY_ID au bon format."
+          else
+            echo "ERREUR: ASC_KEY_ID doit etre 10 caracteres (lettres maj + chiffres), ex: ABC123DEF4."
+            ok=0
+          fi
+          if printf '%s' "$ASC_ISSUER_ID" | grep -qiE '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
+            echo "ASC_ISSUER_ID au bon format."
+          else
+            echo "ERREUR: ASC_ISSUER_ID doit etre un UUID, ex: 69a6de70-1234-47e3-e053-5b8c7c11a4d1."
+            ok=0
+          fi
+          [ "$ok" = "1" ] || exit 1
+
       - name: Build & upload to TestFlight (Fastlane)
         working-directory: iosApp
         env:
