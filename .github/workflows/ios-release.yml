@@ -25,12 +25,24 @@ jobs:
         working-directory: iosApp
         run: pod install
 
+      # Decode le secret base64 vers un vrai fichier .p8 et verifie qu'il est valide.
+      - name: Decode App Store Connect API key
+        run: |
+          mkdir -p "$RUNNER_TEMP/asc"
+          printf '%s' "${{ secrets.ASC_KEY_CONTENT }}" | openssl base64 -d -A > "$RUNNER_TEMP/asc/AuthKey.p8"
+          if grep -q "BEGIN PRIVATE KEY" "$RUNNER_TEMP/asc/AuthKey.p8"; then
+            echo "Cle .p8 valide."
+          else
+            echo "ERREUR: ASC_KEY_CONTENT ne decode pas vers un .p8 valide (mauvais base64 ?)."
+            exit 1
+          fi
+
       - name: Build & upload to TestFlight (Fastlane)
         working-directory: iosApp
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          ASC_KEY_PATH: ${{ runner.temp }}/asc/AuthKey.p8
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           BUILD_NUMBER: ${{ github.run_number }}
         run: fastlane beta

@@ -3,12 +3,11 @@ default_platform(:ios)
 platform :ios do
   desc "Build signe + upload vers TestFlight"
   lane :beta do
-    # Authentification a App Store Connect via cle API (.p8 en base64 dans ASC_KEY_CONTENT)
+    # Authentification a App Store Connect via cle API (.p8 decode en fichier par le workflow)
     api_key = app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
-      key_content: ENV["ASC_KEY_CONTENT"],
-      is_key_content_base64: true
+      key_filepath: ENV["ASC_KEY_PATH"]
     )
 
     # Build + signature automatique (cloud signing gere par Apple via la cle API)
