@@ -1,0 +1,11 @@
+# SDK natif Firebase iOS requis par GitLive (dev.gitlive:firebase-* 1.11.1).
+# Sans ces pods, le link de l'app echoue sur "framework 'FirebaseCore' not found".
+platform :ios, '15.0'
+
+target 'iosApp' do
+  use_frameworks!
+
+  pod 'FirebaseCore',      '~> 11.0'
+  pod 'FirebaseAuth',      '~> 11.0'
+  pod 'FirebaseFirestore', '~> 11.0'
+end

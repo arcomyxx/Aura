@@ -38,3 +38,21 @@ jobs:
       - name: Run iOS tests
         continue-on-error: true
         run: ./gradlew :composeApp:iosSimulatorArm64Test --stacktrace
+
+      # Etape 4 : installer le SDK natif Firebase iOS via CocoaPods.
+      - name: CocoaPods install
+        working-directory: iosApp
+        run: pod install
+
+      # Etape 5 : builder l'app iOS REELLE pour le simulateur, sans signature.
+      # Utilise le .xcworkspace genere par CocoaPods (pas le .xcodeproj).
+      - name: Build iOS app (simulateur, sans signature)
+        run: |
+          xcodebuild build \
+            -workspace iosApp/iosApp.xcworkspace \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
