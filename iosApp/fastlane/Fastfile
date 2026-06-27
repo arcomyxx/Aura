@@ -18,7 +18,7 @@ platform :ios do
     cert(
       api_key: api_key,
       development: false,
-      keychain_path: ENV["MATCH_KEYCHAIN_NAME"],
+      keychain_path: File.expand_path("~/Library/Keychains/#{ENV['MATCH_KEYCHAIN_NAME']}-db"),
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"] || ""
     )
 
