@@ -13,8 +13,14 @@ platform :ios do
       key_filepath: ENV["ASC_KEY_PATH"]
     )
 
-    # Certificat de DISTRIBUTION (development: false = distribution)
-    cert(api_key: api_key, development: false)
+    # Certificat de DISTRIBUTION (development: false = distribution),
+    # installe dans le trousseau temporaire cree par setup_ci.
+    cert(
+      api_key: api_key,
+      development: false,
+      keychain_path: ENV["MATCH_KEYCHAIN_NAME"],
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"] || ""
+    )
 
     # Profil APP STORE pour le bundle id (pas besoin d'appareil enregistre)
     sigh(
