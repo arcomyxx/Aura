@@ -1,8 +1,7 @@
 name: iOS Build
 
 on:
-  push:
-  workflow_dispatch:   # permet de relancer le build a la main depuis l'onglet Actions
+  workflow_dispatch:   # manuel uniquement (eviter de consommer des minutes macOS a chaque push)
 
 jobs:
   build:
