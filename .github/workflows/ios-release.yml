@@ -43,6 +43,18 @@ jobs:
             exit 1
           fi
 
+      # Le Team ID doit etre l'identifiant a 10 caracteres, pas un nom.
+      - name: Verifier le Team ID
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if printf '%s' "$APPLE_TEAM_ID" | grep -qE '^[A-Z0-9]{10}$'; then
+            echo "Team ID au bon format."
+          else
+            echo "ERREUR: APPLE_TEAM_ID doit etre l'identifiant a 10 caracteres (ex: A1B2C3D4E5), pas un nom. Corrige le secret."
+            exit 1
+          fi
+
       - name: Build & upload to TestFlight (Fastlane)
         working-directory: iosApp
         env:
