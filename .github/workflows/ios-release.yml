@@ -25,15 +25,21 @@ jobs:
         working-directory: iosApp
         run: pod install
 
-      # Decode le secret base64 vers un vrai fichier .p8 et verifie qu'il est valide.
+      # Reconstruit le .p8 a partir du secret, qu'il soit colle en clair (PEM) ou en base64.
       - name: Decode App Store Connect API key
+        env:
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
         run: |
           mkdir -p "$RUNNER_TEMP/asc"
-          printf '%s' "${{ secrets.ASC_KEY_CONTENT }}" | openssl base64 -d -A > "$RUNNER_TEMP/asc/AuthKey.p8"
+          if printf '%s' "$ASC_KEY_CONTENT" | grep -q "BEGIN PRIVATE KEY"; then
+            printf '%s' "$ASC_KEY_CONTENT" > "$RUNNER_TEMP/asc/AuthKey.p8"
+          else
+            printf '%s' "$ASC_KEY_CONTENT" | openssl base64 -d -A > "$RUNNER_TEMP/asc/AuthKey.p8" 2>/dev/null || true
+          fi
           if grep -q "BEGIN PRIVATE KEY" "$RUNNER_TEMP/asc/AuthKey.p8"; then
             echo "Cle .p8 valide."
           else
-            echo "ERREUR: ASC_KEY_CONTENT ne decode pas vers un .p8 valide (mauvais base64 ?)."
+            echo "ERREUR: ASC_KEY_CONTENT n'est ni un .p8 brut ni un base64 de .p8 valide. Recree le secret."
             exit 1
           fi
 
