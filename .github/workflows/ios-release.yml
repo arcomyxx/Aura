@@ -21,6 +21,32 @@ jobs:
       - name: Grant gradlew permissions
         run: chmod +x gradlew
 
+      # --- Caches pour eviter de tout recompiler a chaque run (gRPC, pods, Kotlin/Native) ---
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            iosApp/Pods
+            ~/.cocoapods
+            ~/Library/Caches/CocoaPods
+          key: pods-${{ runner.os }}-${{ hashFiles('iosApp/Podfile') }}
+          restore-keys: pods-${{ runner.os }}-
+
+      - name: Cache Kotlin/Native (konan)
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      # Cache des pods COMPILES (gRPC/abseil/BoringSSL) — le plus gros gain de temps.
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: deriveddata-release-${{ runner.os }}-${{ hashFiles('iosApp/Podfile') }}
+          restore-keys: deriveddata-release-${{ runner.os }}-
+
       - name: CocoaPods install
         working-directory: iosApp
         run: pod install
