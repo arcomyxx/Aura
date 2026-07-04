@@ -102,6 +102,17 @@ jobs:
           fi
           [ "$ok" = "1" ] || exit 1
 
+      # Cle SSH pour que match puisse ouvrir le coffre-fort prive aura-match-certs.
+      - name: Setup SSH deploy key (match)
+        env:
+          MATCH_DEPLOY_KEY: ${{ secrets.MATCH_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$MATCH_DEPLOY_KEY" > ~/.ssh/match_ed25519
+          chmod 600 ~/.ssh/match_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          printf 'Host github.com\n  IdentityFile ~/.ssh/match_ed25519\n  IdentitiesOnly yes\n' >> ~/.ssh/config
+
       - name: Build & upload to TestFlight (Fastlane)
         working-directory: iosApp
         env:
@@ -110,4 +121,5 @@ jobs:
           ASC_KEY_PATH: ${{ runner.temp }}/asc/AuthKey.p8
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           BUILD_NUMBER: ${{ github.run_number }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
         run: fastlane beta
