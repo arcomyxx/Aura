@@ -14,8 +14,7 @@ platform :ios do
     )
 
     # match : recupere (ou cree au 1er run) LE certificat de distribution + profil App Store,
-    # stockes chiffres dans le repo prive aura-match-certs. Reutilise a chaque run -> plus
-    # jamais d'epuisement de certificats.
+    # stockes chiffres dans le repo prive aura-match-certs. Reutilise a chaque run.
     match(
       type: "appstore",
       api_key: api_key,
@@ -24,22 +23,25 @@ platform :ios do
       readonly: false
     )
 
-    # UUID du profil installe par match (sans espace -> sur en xcargs)
-    profile_uuid = ENV["sigh_com.dubois.aura_appstore"]
     profile_name = lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING]["com.dubois.aura"]
+
+    # Signature manuelle UNIQUEMENT sur la cible de l'app (pas sur les pods Firebase/gRPC,
+    # qui ne supportent pas de profil de provisioning).
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "iosApp.xcodeproj",
+      targets: ["iosApp"],
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: profile_name
+    )
 
     build_app(
       workspace: "iosApp.xcworkspace",
       scheme: "iosApp",
       configuration: "Release",
       export_method: "app-store",
-      xcargs: [
-        "DEVELOPMENT_TEAM=#{ENV['APPLE_TEAM_ID']}",
-        "CURRENT_PROJECT_VERSION=#{ENV['BUILD_NUMBER']}",
-        "CODE_SIGN_STYLE=Manual",
-        "CODE_SIGN_IDENTITY=\"Apple Distribution\"",
-        "PROVISIONING_PROFILE_SPECIFIER=#{profile_uuid}"
-      ].join(" "),
+      xcargs: "CURRENT_PROJECT_VERSION=#{ENV['BUILD_NUMBER']}",
       export_options: {
         signingStyle: "manual",
         teamID: ENV["APPLE_TEAM_ID"],
