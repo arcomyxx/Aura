@@ -26,6 +26,7 @@ import com.dubois.aura.viewmodel.UserViewModel
 @Composable
 fun ProfileScreen(
     viewModel: UserViewModel,
+    onFriendsClick: () -> Unit,
     onLogout: () -> Unit
 ) {
     val profile by viewModel.profile.collectAsState()
@@ -69,6 +70,13 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Sauvegarder")
+        }
+
+        OutlinedButton(
+            onClick = onFriendsClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Mes amis")
         }
 
         Spacer(Modifier.weight(1f))

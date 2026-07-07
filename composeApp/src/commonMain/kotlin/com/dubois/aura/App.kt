@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,10 +21,13 @@ import org.jetbrains.compose.resources.painterResource
 import aura.composeapp.generated.resources.Res
 import aura.composeapp.generated.resources.compose_multiplatform
 import com.dubois.aura.navigation.Screen
+import com.dubois.aura.ui.FriendsScreen
 import com.dubois.aura.ui.HomeScreen
 import com.dubois.aura.ui.LoginScreen
 import com.dubois.aura.ui.ProfileScreen
 import com.dubois.aura.ui.RegisterScreen
+import com.dubois.aura.ui.theme.AuraTheme
+import com.dubois.aura.viewmodel.FriendsViewModel
 import com.dubois.aura.viewmodel.UserViewModel
 
 @Composable
@@ -33,8 +35,9 @@ import com.dubois.aura.viewmodel.UserViewModel
 fun App() {
     val navController = rememberNavController()
     val viewModel = remember { UserViewModel() }
+    val friendsViewModel = remember { FriendsViewModel() }
 
-    MaterialTheme {
+    AuraTheme {
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route
@@ -78,11 +81,20 @@ fun App() {
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     viewModel = viewModel,
+                    onFriendsClick = { navController.navigate(Screen.Friends.route) },
                     onLogout = {
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     }
+                )
+            }
+
+            // ── Amis ──────────────────────────────────────────────
+            composable(Screen.Friends.route) {
+                FriendsScreen(
+                    viewModel = friendsViewModel,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         }

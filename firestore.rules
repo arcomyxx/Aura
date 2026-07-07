@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Profils utilisateurs : lisibles par tout utilisateur connecté
+    // (nécessaire pour la recherche par nom/email), modifiables seulement
+    // par leur propriétaire.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+
+      // Sous-collection des amis. Le propriétaire lit sa propre liste.
+      // L'écriture est permise aux deux parties concernées : lors de
+      // l'acceptation, chacun écrit dans la liste de l'autre.
+      match /friends/{friendId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null
+                     && (request.auth.uid == userId || request.auth.uid == friendId);
+      }
+    }
+
+    // Demandes d'ami : lisibles/modifiables uniquement par l'expéditeur
+    // ou le destinataire. La création exige que fromUid soit l'appelant.
+    match /friendRequests/{reqId} {
+      allow read: if request.auth != null
+                  && (resource.data.fromUid == request.auth.uid
+                      || resource.data.toUid == request.auth.uid);
+      allow create: if request.auth != null
+                    && request.resource.data.fromUid == request.auth.uid;
+      allow update: if request.auth != null
+                    && (resource.data.fromUid == request.auth.uid
+                        || resource.data.toUid == request.auth.uid);
+    }
+  }
+}
