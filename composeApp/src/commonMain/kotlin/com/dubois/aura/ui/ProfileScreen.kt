@@ -46,6 +46,10 @@ fun ProfileScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.outline
         )
+        Text(
+            "Score d'aura : ${profile?.auraScore ?: 0}",
+            style = MaterialTheme.typography.titleLarge
+        )
 
         OutlinedTextField(
             value = name,

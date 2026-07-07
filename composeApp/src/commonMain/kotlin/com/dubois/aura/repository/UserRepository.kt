@@ -45,7 +45,19 @@ class UserRepository {
     }
 
     suspend fun getProfile(uid: String): UserProfile {
-        val doc = firestore.collection("users").document(uid).get()
+        val docRef = firestore.collection("users").document(uid)
+        val doc = docRef.get()
+        if (!doc.exists) {
+            // Compte Auth existant sans profil Firestore (ex: echec d'ecriture lors de l'inscription).
+            // On recree un profil par defaut pour ne pas bloquer l'utilisateur.
+            val fallback = UserProfile(
+                uid = uid,
+                email = auth.currentUser?.email ?: "",
+                createdAt = Clock.System.now().toEpochMilliseconds(),
+            )
+            docRef.set(UserProfile.serializer(), fallback)
+            return fallback
+        }
         return doc.data(UserProfile.serializer())
     }
 
