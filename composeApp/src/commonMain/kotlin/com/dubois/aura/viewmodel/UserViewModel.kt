@@ -49,4 +49,10 @@ class UserViewModel : ViewModel() {
             _profile.value = null
         }
     }
+
+    /**
+     * Vrai si une session Firebase est déjà ouverte (persistée sur l'appareil).
+     * Permet de sauter l'écran de connexion au lancement.
+     */
+    fun isLoggedIn(): Boolean = repo.currentUser() != null
 }

@@ -72,6 +72,18 @@ class UserRepository {
         }
     }
 
+    /**
+     * Tous les utilisateurs, triés par score d'aura décroissant.
+     * Sert au classement global et aux scores affichés dans l'onglet Amis.
+     */
+    suspend fun allUsersRanked(): List<UserProfile> {
+        return firestore.collection("users")
+            .get().documents
+            .map { it.data(UserProfile.serializer()) }
+            .filter { it.uid.isNotEmpty() }
+            .sortedByDescending { it.auraScore }
+    }
+
     suspend fun logout() = auth.signOut()
 
     fun currentUser() = auth.currentUser

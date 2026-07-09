@@ -1,49 +1,41 @@
 package com.dubois.aura
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import org.jetbrains.compose.resources.painterResource
 
-import aura.composeapp.generated.resources.Res
-import aura.composeapp.generated.resources.compose_multiplatform
 import com.dubois.aura.navigation.Screen
-import com.dubois.aura.ui.FriendsScreen
 import com.dubois.aura.ui.HomeScreen
 import com.dubois.aura.ui.LoginScreen
-import com.dubois.aura.ui.ProfileScreen
 import com.dubois.aura.ui.RegisterScreen
+import com.dubois.aura.ui.main.MainScreen
 import com.dubois.aura.ui.theme.AuraTheme
-import com.dubois.aura.viewmodel.FriendsViewModel
+import com.dubois.aura.viewmodel.MainViewModel
 import com.dubois.aura.viewmodel.UserViewModel
 
 @Composable
 @Preview
 fun App() {
     val navController = rememberNavController()
-    val viewModel = remember { UserViewModel() }
-    val friendsViewModel = remember { FriendsViewModel() }
+    val userViewModel = remember { UserViewModel() }
+    val mainViewModel = remember { MainViewModel() }
+
+    // Si une session Firebase est déjà ouverte, on va directement à l'écran
+    // principal (Firebase persiste la connexion sur l'appareil).
+    val startDestination = remember {
+        if (userViewModel.isLoggedIn()) Screen.Main.route else Screen.Home.route
+    }
 
     AuraTheme {
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route
+            startDestination = startDestination
         ) {
 
-            // ── Écran d'accueil original ──────────────────────────
+            // ── Écran d'accueil ───────────────────────────────────
             composable(Screen.Home.route) {
                 HomeScreen(
                     onLoginClick = { navController.navigate(Screen.Login.route) },
@@ -54,9 +46,9 @@ fun App() {
             // ── Connexion ─────────────────────────────────────────
             composable(Screen.Login.route) {
                 LoginScreen(
-                    viewModel = viewModel,
+                    viewModel = userViewModel,
                     onLoginSuccess = {
-                        navController.navigate(Screen.Profile.route) {
+                        navController.navigate(Screen.Main.route) {
                             popUpTo(Screen.Home.route)
                         }
                     },
@@ -67,9 +59,9 @@ fun App() {
             // ── Inscription ───────────────────────────────────────
             composable(Screen.Register.route) {
                 RegisterScreen(
-                    viewModel = viewModel,
+                    viewModel = userViewModel,
                     onRegisterSuccess = {
-                        navController.navigate(Screen.Profile.route) {
+                        navController.navigate(Screen.Main.route) {
                             popUpTo(Screen.Home.route)
                         }
                     },
@@ -77,24 +69,17 @@ fun App() {
                 )
             }
 
-            // ── Profil ────────────────────────────────────────────
-            composable(Screen.Profile.route) {
-                ProfileScreen(
-                    viewModel = viewModel,
-                    onFriendsClick = { navController.navigate(Screen.Friends.route) },
+            // ── Expérience principale (Profil / Amis / Classement) ─
+            composable(Screen.Main.route) {
+                MainScreen(
+                    viewModel = mainViewModel,
                     onLogout = {
+                        userViewModel.logout()
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                            // Vide toute la pile pour ne pas pouvoir revenir sur Main.
+                            popUpTo(navController.graph.id) { inclusive = true }
                         }
                     }
-                )
-            }
-
-            // ── Amis ──────────────────────────────────────────────
-            composable(Screen.Friends.route) {
-                FriendsScreen(
-                    viewModel = friendsViewModel,
-                    onBackClick = { navController.popBackStack() }
                 )
             }
         }
