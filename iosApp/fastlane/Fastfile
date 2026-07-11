@@ -65,8 +65,10 @@ platform :ios do
       # rejet, au lieu de "reussir" a vide.
       skip_waiting_for_build_processing: false,
       changelog: build_notes,
-      # Distribution automatique : groupe interne + groupe externe.
-      groups: ["Famille", "Famille externe"],
+      # Ne lister QUE le(s) groupe(s) externe(s) : le groupe interne "Famille"
+      # recoit les builds automatiquement (l'API refuse d'assigner un groupe
+      # interne a une build).
+      groups: ["Famille externe"],
       distribute_external: true,
       notify_external_testers: true
     )
