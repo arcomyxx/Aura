@@ -51,9 +51,24 @@ platform :ios do
       }
     )
 
+    # Note de version pour le champ "What to Test" (obligatoire en externe).
+    # Reprend le sujet du dernier commit, avec repli sur le numero de build.
+    build_notes = begin
+      last_git_commit[:message].to_s.split("\n").first
+    rescue StandardError
+      "Build #{ENV['BUILD_NUMBER']}"
+    end
+
     upload_to_testflight(
       api_key: api_key,
-      skip_waiting_for_build_processing: true
+      # Attend la fin du traitement Apple : la CI echoue franchement en cas de
+      # rejet, au lieu de "reussir" a vide.
+      skip_waiting_for_build_processing: false,
+      changelog: build_notes,
+      # Distribution automatique : groupe interne + groupe externe.
+      groups: ["Famille", "Famille externe"],
+      distribute_external: true,
+      notify_external_testers: true
     )
   end
 end
