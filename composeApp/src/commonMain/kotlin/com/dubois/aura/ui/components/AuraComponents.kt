@@ -14,9 +14,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -163,13 +169,17 @@ private fun TabSegment(
 
 /**
  * En-tête commun aux trois onglets : label "AURA SCORE", nom en serif, avatar.
+ * Le clic sur l'avatar ouvre un menu (modifier le profil / se déconnecter).
  */
 @Composable
 fun AuraHeader(
     displayName: String,
     modifier: Modifier = Modifier,
-    onAvatarClick: () -> Unit = {},
+    onEditProfile: () -> Unit = {},
+    onLogout: () -> Unit = {},
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -184,13 +194,37 @@ fun AuraHeader(
                 fontSize = 30.sp,
             )
         }
-        InitialsAvatar(
-            name = displayName,
-            ringColor = AuraPalette.Primary,
-            size = 48,
-            fontSize = 16,
-            modifier = Modifier.clickableNoRipple(onAvatarClick),
-        )
+        Box {
+            InitialsAvatar(
+                name = displayName,
+                ringColor = AuraPalette.Primary,
+                size = 48,
+                fontSize = 16,
+                modifier = Modifier.clickableNoRipple { menuOpen = true },
+            )
+            DropdownMenu(
+                expanded = menuOpen,
+                onDismissRequest = { menuOpen = false },
+                containerColor = AuraPalette.SurfaceElevated,
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Modifier le profil", color = AuraPalette.TextPrimary, fontSize = 14.sp) },
+                    onClick = {
+                        menuOpen = false
+                        onEditProfile()
+                    },
+                    colors = MenuDefaults.itemColors(textColor = AuraPalette.TextPrimary),
+                )
+                DropdownMenuItem(
+                    text = { Text("Se déconnecter", color = AuraPalette.Negative, fontSize = 14.sp) },
+                    onClick = {
+                        menuOpen = false
+                        onLogout()
+                    },
+                    colors = MenuDefaults.itemColors(textColor = AuraPalette.Negative),
+                )
+            }
+        }
     }
 }
 
