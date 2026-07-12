@@ -138,6 +138,19 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    /** Met à jour le profil courant (nom + bio), puis recharge les données. */
+    fun updateProfile(name: String, bio: String) {
+        viewModelScope.launch {
+            val uid = userRepo.currentUser()?.uid ?: return@launch
+            userRepo.updateProfile(uid, name.trim(), bio.trim())
+                .onSuccess {
+                    _message.value = "Profil mis à jour"
+                    load()
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
     /** Signale un événement sur un ami, puis recharge les données. */
     fun report(target: UserProfile, type: EventType, description: String) {
         viewModelScope.launch {

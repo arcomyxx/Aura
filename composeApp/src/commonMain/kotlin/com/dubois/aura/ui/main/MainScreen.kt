@@ -57,7 +57,9 @@ fun MainScreen(
     var selectedTab by remember { mutableStateOf(0) }
     var reportTarget by remember { mutableStateOf<RankedUser?>(null) }
     var showSheet by remember { mutableStateOf(false) }
+    var showEditProfile by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val editSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(Unit) { viewModel.load() }
 
@@ -86,7 +88,8 @@ fun MainScreen(
         ) {
             AuraHeader(
                 displayName = me?.profile?.displayName ?: "",
-                onAvatarClick = onLogout,
+                onEditProfile = { showEditProfile = true },
+                onLogout = onLogout,
             )
             Spacer(Modifier.height(18.dp))
             AuraTabBar(tabs = TABS, selected = selectedTab, onSelect = { selectedTab = it })
@@ -133,6 +136,23 @@ fun MainScreen(
                     onSubmit = { target, type, description ->
                         viewModel.report(target, type, description)
                         showSheet = false
+                    },
+                )
+            }
+        }
+
+        if (showEditProfile) {
+            ModalBottomSheet(
+                onDismissRequest = { showEditProfile = false },
+                sheetState = editSheetState,
+                containerColor = AuraPalette.Surface,
+            ) {
+                EditProfileSheetContent(
+                    profile = me?.profile,
+                    onDismiss = { showEditProfile = false },
+                    onSubmit = { name, bio ->
+                        viewModel.updateProfile(name, bio)
+                        showEditProfile = false
                     },
                 )
             }
