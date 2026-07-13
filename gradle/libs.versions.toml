@@ -11,7 +11,7 @@ androidx-lifecycle = "2.9.6"
 androidx-testExt = "1.3.0"
 composeHotReload = "1.0.0"
 composeMultiplatform = "1.10.0"
-filekit = "0.14.2"
+filekit = "0.14.0" # 0.14.2 est compile avec Kotlin 2.4.0 (abi 2.4.0) => klib iOS rejete par Kotlin 2.3.0
 gitliveVersion = "1.11.1"
 junit = "4.13.2"
 kotlin = "2.3.0"
