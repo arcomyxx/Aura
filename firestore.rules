@@ -30,11 +30,19 @@ service cloud.firestore {
 
       // Événements d'aura reçus par l'utilisateur. Lisibles par tout membre
       // connecté ; créés par un tiers (auteur = appelant, ≠ cible).
+      // Seul l'auteur peut modifier ou supprimer son propre signalement, sans
+      // pouvoir en changer l'auteur ni la cible.
       match /events/{eventId} {
         allow read: if request.auth != null;
         allow create: if request.auth != null
                       && request.resource.data.authorUid == request.auth.uid
                       && request.auth.uid != userId;
+        allow update: if request.auth != null
+                      && resource.data.authorUid == request.auth.uid
+                      && request.resource.data.authorUid == resource.data.authorUid
+                      && request.resource.data.targetUid == resource.data.targetUid;
+        allow delete: if request.auth != null
+                      && resource.data.authorUid == request.auth.uid;
       }
     }
 

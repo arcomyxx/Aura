@@ -1,6 +1,7 @@
 package com.dubois.aura.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,12 +31,14 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dubois.aura.ui.theme.AuraPalette
+import com.dubois.aura.util.decodeImageBitmap
 
 /** Retourne les initiales (1 à 2 lettres) d'un nom d'affichage. */
 fun initialsOf(name: String): String {
@@ -46,7 +50,11 @@ fun initialsOf(name: String): String {
     }
 }
 
-/** Avatar circulaire à initiales, avec anneau coloré (couleur de tier). */
+/**
+ * Avatar circulaire, avec anneau coloré (couleur de tier). Affiche la photo de
+ * profil ([photoBase64], stockée en base64) si elle est présente et décodable,
+ * sinon les initiales du nom.
+ */
 @Composable
 fun InitialsAvatar(
     name: String,
@@ -54,7 +62,9 @@ fun InitialsAvatar(
     modifier: Modifier = Modifier,
     size: Int = 44,
     fontSize: Int = 15,
+    photoBase64: String = "",
 ) {
+    val bitmap = remember(photoBase64) { decodeImageBitmap(photoBase64) }
     Box(
         modifier = modifier
             .size(size.dp)
@@ -63,12 +73,21 @@ fun InitialsAvatar(
             .border(BorderStroke(1.5.dp, ringColor.copy(alpha = 0.7f)), CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = initialsOf(name),
-            color = ringColor,
-            fontSize = fontSize.sp,
-            fontWeight = FontWeight.SemiBold,
-        )
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().clip(CircleShape),
+            )
+        } else {
+            Text(
+                text = initialsOf(name),
+                color = ringColor,
+                fontSize = fontSize.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 
@@ -85,24 +104,27 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** Carte sombre standard (fond surface + bordure discrète). */
+/**
+ * Carte sombre standard (fond surface + bordure discrète). [accent] tinte la
+ * bordure (ex. couleur de thème d'un ami) ; [highlighted] met en avant la carte.
+ */
 @Composable
 fun AuraCard(
     modifier: Modifier = Modifier,
     highlighted: Boolean = false,
+    accent: Color? = null,
     content: @Composable () -> Unit,
 ) {
+    val borderColor = when {
+        accent != null -> accent.copy(alpha = 0.55f)
+        highlighted -> AuraPalette.Primary.copy(alpha = 0.5f)
+        else -> AuraPalette.CardBorder
+    }
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(if (highlighted) AuraPalette.SurfaceElevated else AuraPalette.Surface)
-            .border(
-                BorderStroke(
-                    1.dp,
-                    if (highlighted) AuraPalette.Primary.copy(alpha = 0.5f) else AuraPalette.CardBorder
-                ),
-                RoundedCornerShape(18.dp)
-            )
+            .border(BorderStroke(1.dp, borderColor), RoundedCornerShape(18.dp))
     ) { content() }
 }
 
@@ -175,6 +197,7 @@ private fun TabSegment(
 fun AuraHeader(
     displayName: String,
     modifier: Modifier = Modifier,
+    photoBase64: String = "",
     onEditProfile: () -> Unit = {},
     onLogout: () -> Unit = {},
 ) {
@@ -200,6 +223,7 @@ fun AuraHeader(
                 ringColor = AuraPalette.Primary,
                 size = 48,
                 fontSize = 16,
+                photoBase64 = photoBase64,
                 modifier = Modifier.clickableNoRipple { menuOpen = true },
             )
             DropdownMenu(

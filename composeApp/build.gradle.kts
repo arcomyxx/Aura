@@ -62,6 +62,9 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
 
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs.compose)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

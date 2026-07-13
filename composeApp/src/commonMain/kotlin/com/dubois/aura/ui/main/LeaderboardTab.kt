@@ -33,7 +33,7 @@ fun LeaderboardTab(
 ) {
     LazyColumn(modifier = modifier.fillMaxWidth()) {
         item {
-            SectionLabel("👑 Classement global")
+            SectionLabel("👑 Classement des amis")
             Spacer(Modifier.height(14.dp))
         }
         items(leaderboard, key = { it.profile.uid }) { user ->

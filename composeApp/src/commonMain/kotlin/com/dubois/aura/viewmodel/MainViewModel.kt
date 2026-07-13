@@ -53,6 +53,17 @@ class MainViewModel : ViewModel() {
     private val _weeklyDelta = MutableStateFlow(0)
     val weeklyDelta: StateFlow<Int> = _weeklyDelta
 
+    /** Ami dont on consulte le profil (null = aucun profil ouvert). */
+    private val _selectedFriend = MutableStateFlow<RankedUser?>(null)
+    val selectedFriend: StateFlow<RankedUser?> = _selectedFriend
+
+    /** Historique d'événements de l'ami consulté. */
+    private val _friendEvents = MutableStateFlow<List<AuraEvent>>(emptyList())
+    val friendEvents: StateFlow<List<AuraEvent>> = _friendEvents
+
+    /** UID de l'utilisateur courant, pour distinguer mes signalements des autres. */
+    val myUid: String? get() = userRepo.currentUser()?.uid
+
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
@@ -64,17 +75,24 @@ class MainViewModel : ViewModel() {
             _loading.value = true
             val myUid = userRepo.currentUser()?.uid
 
-            // Classement global -> rangs pour tout le monde.
+            // Rang global (parmi tous les utilisateurs) -> profil & onglet Amis.
             val all = userRepo.allUsersRanked()
             val ranked = all.mapIndexed { index, profile ->
                 RankedUser(profile, rank = index + 1, isMe = profile.uid == myUid)
             }
-            _leaderboard.value = ranked
             _me.value = ranked.firstOrNull { it.isMe }
 
-            // Amis = intersection classement / liste d'amis, dans l'ordre du classement.
+            // Amis = intersection classement global / liste d'amis, dans l'ordre du classement.
             val friendUids = friendRepo.friends().map { it.uid }.toSet()
             _friends.value = ranked.filter { it.profile.uid in friendUids }
+
+            // Classement affiché = moi + mes amis uniquement, re-classés 1..N
+            // (exclut les autres utilisateurs, dont les comptes de test).
+            _leaderboard.value = all
+                .filter { it.uid == myUid || it.uid in friendUids }
+                .mapIndexed { index, profile ->
+                    RankedUser(profile, rank = index + 1, isMe = profile.uid == myUid)
+                }
 
             // Demandes d'ami reçues.
             _requests.value = friendRepo.incomingRequests()
@@ -138,11 +156,64 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    /** Met à jour le profil courant (nom + bio), puis recharge les données. */
-    fun updateProfile(name: String, bio: String) {
+    // ── Profil d'un ami & gestion de mes signalements ──────────────
+
+    /** Ouvre le profil d'un ami et charge son historique d'événements. */
+    fun openFriend(friend: RankedUser) {
+        _selectedFriend.value = friend
+        _friendEvents.value = emptyList()
+        viewModelScope.launch {
+            _friendEvents.value = eventRepo.recentEvents(friend.profile.uid)
+        }
+    }
+
+    /** Ferme le profil d'ami consulté. */
+    fun closeFriend() {
+        _selectedFriend.value = null
+        _friendEvents.value = emptyList()
+    }
+
+    /** Recharge l'historique et le score de l'ami consulté après une modif. */
+    private fun refreshFriendProfile() {
+        val current = _selectedFriend.value ?: return
+        viewModelScope.launch {
+            _friendEvents.value = eventRepo.recentEvents(current.profile.uid)
+            val fresh = userRepo.getProfile(current.profile.uid)
+            _selectedFriend.value = current.copy(profile = fresh)
+        }
+    }
+
+    /** Modifie un de mes signalements (type + description) sur l'ami consulté. */
+    fun updateEvent(event: AuraEvent, type: EventType, description: String) {
+        viewModelScope.launch {
+            eventRepo.updateEvent(event, type, description)
+                .onSuccess {
+                    _message.value = "Signalement modifié"
+                    refreshFriendProfile()
+                    load()
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    /** Supprime un de mes signalements sur l'ami consulté. */
+    fun deleteEvent(event: AuraEvent) {
+        viewModelScope.launch {
+            eventRepo.deleteEvent(event)
+                .onSuccess {
+                    _message.value = "Signalement supprimé"
+                    refreshFriendProfile()
+                    load()
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    /** Met à jour le profil courant (nom + bio + photo + couleur), puis recharge. */
+    fun updateProfile(name: String, bio: String, photoUrl: String, themeColor: String) {
         viewModelScope.launch {
             val uid = userRepo.currentUser()?.uid ?: return@launch
-            userRepo.updateProfile(uid, name.trim(), bio.trim())
+            userRepo.updateProfile(uid, name.trim(), bio.trim(), photoUrl, themeColor)
                 .onSuccess {
                     _message.value = "Profil mis à jour"
                     load()

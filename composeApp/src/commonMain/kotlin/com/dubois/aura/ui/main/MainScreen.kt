@@ -30,10 +30,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import com.dubois.aura.model.AuraEvent
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.ui.components.AuraHeader
 import com.dubois.aura.ui.components.AuraTabBar
 import com.dubois.aura.ui.theme.AuraPalette
+import com.dubois.aura.ui.theme.colorFromHex
 import com.dubois.aura.viewmodel.MainViewModel
 
 private val TABS = listOf("Profil", "Amis", "Classement")
@@ -53,15 +55,24 @@ fun MainScreen(
     val requests by viewModel.requests.collectAsState()
     val searching by viewModel.searching.collectAsState()
     val message by viewModel.message.collectAsState()
+    val selectedFriend by viewModel.selectedFriend.collectAsState()
+    val friendEvents by viewModel.friendEvents.collectAsState()
 
     var selectedTab by remember { mutableStateOf(0) }
     var reportTarget by remember { mutableStateOf<RankedUser?>(null) }
     var showSheet by remember { mutableStateOf(false) }
     var showEditProfile by remember { mutableStateOf(false) }
+    var editingEvent by remember { mutableStateOf<AuraEvent?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val editSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val editReportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(Unit) { viewModel.load() }
+
+    // Applique la couleur d'accent choisie par l'utilisateur à tout le thème.
+    LaunchedEffect(me?.profile?.themeColor) {
+        AuraPalette.setAccent(colorFromHex(me?.profile?.themeColor ?: ""))
+    }
 
     fun openSheet(target: RankedUser?) {
         reportTarget = target
@@ -88,6 +99,7 @@ fun MainScreen(
         ) {
             AuraHeader(
                 displayName = me?.profile?.displayName ?: "",
+                photoBase64 = me?.profile?.photoUrl ?: "",
                 onEditProfile = { showEditProfile = true },
                 onLogout = onLogout,
             )
@@ -100,7 +112,6 @@ fun MainScreen(
                     me = me,
                     events = events,
                     weeklyDelta = weeklyDelta,
-                    onSignal = { openSheet(null) },
                     modifier = Modifier.weight(1f),
                 )
                 1 -> FriendsTab(
@@ -114,6 +125,7 @@ fun MainScreen(
                     onAccept = viewModel::accept,
                     onDecline = viewModel::decline,
                     onReport = { openSheet(it) },
+                    onOpenProfile = { viewModel.openFriend(it) },
                     modifier = Modifier.weight(1f),
                 )
                 else -> LeaderboardTab(
@@ -150,9 +162,39 @@ fun MainScreen(
                 EditProfileSheetContent(
                     profile = me?.profile,
                     onDismiss = { showEditProfile = false },
-                    onSubmit = { name, bio ->
-                        viewModel.updateProfile(name, bio)
+                    onSubmit = { name, bio, photoUrl, themeColor ->
+                        viewModel.updateProfile(name, bio, photoUrl, themeColor)
                         showEditProfile = false
+                    },
+                )
+            }
+        }
+
+        // Profil d'un ami (superposé par-dessus les onglets)
+        selectedFriend?.let { friend ->
+            FriendProfileScreen(
+                friend = friend,
+                events = friendEvents,
+                myUid = viewModel.myUid,
+                onBack = { viewModel.closeFriend() },
+                onEditEvent = { editingEvent = it },
+                onDeleteEvent = { viewModel.deleteEvent(it) },
+            )
+        }
+
+        if (editingEvent != null) {
+            val event = editingEvent!!
+            ModalBottomSheet(
+                onDismissRequest = { editingEvent = null },
+                sheetState = editReportSheetState,
+                containerColor = AuraPalette.Surface,
+            ) {
+                EditReportSheetContent(
+                    event = event,
+                    onDismiss = { editingEvent = null },
+                    onSubmit = { type, description ->
+                        viewModel.updateEvent(event, type, description)
+                        editingEvent = null
                     },
                 )
             }

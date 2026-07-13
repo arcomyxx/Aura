@@ -12,6 +12,7 @@ import com.dubois.aura.ui.HomeScreen
 import com.dubois.aura.ui.LoginScreen
 import com.dubois.aura.ui.RegisterScreen
 import com.dubois.aura.ui.main.MainScreen
+import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.AuraTheme
 import com.dubois.aura.viewmodel.MainViewModel
 import com.dubois.aura.viewmodel.UserViewModel
@@ -75,6 +76,7 @@ fun App() {
                     viewModel = mainViewModel,
                     onLogout = {
                         userViewModel.logout()
+                        AuraPalette.setAccent(null) // revient au thème par défaut
                         navController.navigate(Screen.Home.route) {
                             // Vide toute la pile pour ne pas pouvoir revenir sur Main.
                             popUpTo(navController.graph.id) { inclusive = true }

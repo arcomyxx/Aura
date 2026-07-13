@@ -42,6 +42,7 @@ import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.color
+import com.dubois.aura.ui.theme.colorFromHex
 import com.dubois.aura.util.grouped
 
 @Composable
@@ -56,6 +57,7 @@ fun FriendsTab(
     onAccept: (FriendRequest) -> Unit,
     onDecline: (FriendRequest) -> Unit,
     onReport: (RankedUser) -> Unit,
+    onOpenProfile: (RankedUser) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier.fillMaxWidth()) {
@@ -108,7 +110,11 @@ fun FriendsTab(
             }
         } else {
             items(friends, key = { it.profile.uid }) { friend ->
-                FriendRow(friend, onReport = { onReport(friend) })
+                FriendRow(
+                    friend,
+                    onReport = { onReport(friend) },
+                    onOpenProfile = { onOpenProfile(friend) },
+                )
                 Spacer(Modifier.height(12.dp))
             }
         }
@@ -226,14 +232,20 @@ private fun RequestRow(
 }
 
 @Composable
-private fun FriendRow(friend: RankedUser, onReport: () -> Unit) {
+private fun FriendRow(friend: RankedUser, onReport: () -> Unit, onOpenProfile: () -> Unit) {
     val tierColor = friend.tier.color
-    AuraCard(Modifier.fillMaxWidth()) {
+    val accent = colorFromHex(friend.profile.themeColor)
+    AuraCard(Modifier.fillMaxWidth(), accent = accent) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenProfile).padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            InitialsAvatar(name = friend.profile.displayName, ringColor = tierColor, size = 46)
+            InitialsAvatar(
+                name = friend.profile.displayName,
+                ringColor = accent ?: tierColor,
+                size = 46,
+                photoBase64 = friend.profile.photoUrl,
+            )
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(

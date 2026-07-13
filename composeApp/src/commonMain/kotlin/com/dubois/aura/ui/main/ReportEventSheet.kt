@@ -208,7 +208,7 @@ private fun FriendChip(friend: RankedUser, selected: Boolean, onClick: () -> Uni
 }
 
 @Composable
-private fun EventTypeCard(
+internal fun EventTypeCard(
     type: EventType,
     selected: Boolean,
     onClick: () -> Unit,

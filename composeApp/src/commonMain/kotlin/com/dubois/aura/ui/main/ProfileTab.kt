@@ -24,7 +24,6 @@ import com.dubois.aura.ui.components.AuraCard
 import com.dubois.aura.ui.components.AuraGauge
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
-import com.dubois.aura.ui.components.clickableNoRipple
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.color
 import com.dubois.aura.util.relativeTime
@@ -36,7 +35,6 @@ fun ProfileTab(
     me: RankedUser?,
     events: List<AuraEvent>,
     weeklyDelta: Int,
-    onSignal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tier = me?.tier
@@ -77,21 +75,7 @@ fun ProfileTab(
                 }
             }
             Spacer(Modifier.height(28.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SectionLabel("Événements récents", Modifier.weight(1f))
-                Text(
-                    text = "+ Signaler",
-                    color = AuraPalette.Primary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .clickableNoRipple(onSignal)
-                        .padding(4.dp),
-                )
-            }
+            SectionLabel("Événements récents", Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
         }
 

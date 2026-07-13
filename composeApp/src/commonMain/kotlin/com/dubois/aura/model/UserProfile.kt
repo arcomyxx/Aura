@@ -9,6 +9,7 @@ data class UserProfile(
     val email: String = "",
     val photoUrl: String = "",
     val bio: String = "",
+    val themeColor: String = "",
     val createdAt: Long = 0L,
     val auraScore: Int = 0
 )

@@ -61,10 +61,21 @@ class UserRepository {
         return doc.data(UserProfile.serializer())
     }
 
-    suspend fun updateProfile(uid: String, name: String, bio: String): Result<Unit> {
+    suspend fun updateProfile(
+        uid: String,
+        name: String,
+        bio: String,
+        photoUrl: String,
+        themeColor: String,
+    ): Result<Unit> {
         return try {
             firestore.collection("users").document(uid).update(
-                mapOf("displayName" to name, "bio" to bio)
+                mapOf(
+                    "displayName" to name,
+                    "bio" to bio,
+                    "photoUrl" to photoUrl,
+                    "themeColor" to themeColor,
+                )
             )
             Result.success(Unit)
         } catch (e: Exception) {

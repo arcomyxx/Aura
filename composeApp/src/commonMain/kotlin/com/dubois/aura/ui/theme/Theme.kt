@@ -10,26 +10,26 @@ import androidx.compose.ui.Modifier
 /**
  * Thème sombre unique de l'application, calé sur les maquettes Figma.
  * Les couleurs Material servent aux composants standard (champs, sheet…) ;
- * les couleurs custom vivent dans [AuraPalette].
+ * les couleurs custom vivent dans [AuraPalette]. Le schéma est recalculé dans
+ * le composable pour suivre la couleur d'accent choisie par l'utilisateur.
  */
-private val AuraDarkColors = darkColorScheme(
-    primary            = AuraPalette.Primary,
-    onPrimary          = AuraPalette.OnPrimary,
-    primaryContainer   = AuraPalette.PrimaryGradientEnd,
-    onPrimaryContainer = AuraPalette.OnPrimary,
-    background         = AuraPalette.Background,
-    onBackground       = AuraPalette.TextPrimary,
-    surface            = AuraPalette.Surface,
-    onSurface          = AuraPalette.TextPrimary,
-    surfaceVariant     = AuraPalette.SurfaceElevated,
-    onSurfaceVariant   = AuraPalette.TextSecondary,
-    outline            = AuraPalette.CardBorder,
-    error              = AuraPalette.Negative,
-)
-
 @Composable
 fun AuraTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = AuraDarkColors) {
+    val colors = darkColorScheme(
+        primary            = AuraPalette.Primary,
+        onPrimary          = AuraPalette.OnPrimary,
+        primaryContainer   = AuraPalette.PrimaryGradientEnd,
+        onPrimaryContainer = AuraPalette.OnPrimary,
+        background         = AuraPalette.Background,
+        onBackground       = AuraPalette.TextPrimary,
+        surface            = AuraPalette.Surface,
+        onSurface          = AuraPalette.TextPrimary,
+        surfaceVariant     = AuraPalette.SurfaceElevated,
+        onSurfaceVariant   = AuraPalette.TextSecondary,
+        outline            = AuraPalette.CardBorder,
+        error              = AuraPalette.Negative,
+    )
+    MaterialTheme(colorScheme = colors) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,

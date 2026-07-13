@@ -34,11 +34,20 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    fun updateProfile(name: String, bio: String) {
+    fun updateProfile(
+        name: String,
+        bio: String,
+        photoUrl: String = _profile.value?.photoUrl ?: "",
+        themeColor: String = _profile.value?.themeColor ?: "",
+    ) {
         viewModelScope.launch {
             val uid = repo.currentUser()?.uid ?: return@launch
-            repo.updateProfile(uid, name, bio)
-                .onSuccess { _profile.value = _profile.value?.copy(displayName = name, bio = bio) }
+            repo.updateProfile(uid, name, bio, photoUrl, themeColor)
+                .onSuccess {
+                    _profile.value = _profile.value?.copy(
+                        displayName = name, bio = bio, photoUrl = photoUrl, themeColor = themeColor,
+                    )
+                }
                 .onFailure { _error.value = it.message }
         }
     }
