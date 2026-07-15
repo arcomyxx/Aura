@@ -222,7 +222,7 @@ private fun FriendEventRow(
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = if (mine) "Toi" else event.authorName.ifBlank { "Anonyme" },
+                            text = event.authorName.ifBlank { "Anonyme" },
                             color = AuraPalette.TextPrimary,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp,
