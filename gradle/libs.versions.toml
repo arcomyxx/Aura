@@ -1,6 +1,6 @@
 [versions]
 agp = "8.11.2"
-android-compileSdk = "36"
+android-compileSdk = "37" # FileKit 0.14.0 Android exige compileSdk 37 (targetSdk reste 36)
 android-minSdk = "33"
 android-targetSdk = "36"
 androidx-activity = "1.12.2"
