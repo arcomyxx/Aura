@@ -39,8 +39,8 @@ import com.dubois.aura.model.EventType
 import com.dubois.aura.ui.theme.AuraPalette
 
 /**
- * Contenu de la feuille « Modifier le signalement » : change le type et la
- * description d'un événement dont l'utilisateur courant est l'auteur.
+ * Contenu de la feuille « Modifier le signalement » : change le type, le
+ * montant et la description d'un événement dont l'utilisateur courant est l'auteur.
  */
 @Composable
 fun EditReportSheetContent(
@@ -52,6 +52,7 @@ fun EditReportSheetContent(
         mutableStateOf(EventCatalog.all.firstOrNull { it.id == event.typeId })
     }
     var description by remember { mutableStateOf(event.description) }
+    var amount by remember { mutableStateOf(kotlin.math.abs(event.delta).toString()) }
 
     Column(
         modifier = Modifier
@@ -83,7 +84,10 @@ fun EditReportSheetContent(
                     EventTypeCard(
                         type = type,
                         selected = selectedType?.id == type.id,
-                        onClick = { selectedType = type },
+                        onClick = {
+                            selectedType = type
+                            amount = kotlin.math.abs(type.delta).toString()
+                        },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -93,6 +97,14 @@ fun EditReportSheetContent(
         }
 
         Spacer(Modifier.height(8.dp))
+        selectedType?.let { type ->
+            AuraAmountField(
+                amount = amount,
+                onAmountChange = { amount = it },
+                positive = type.isPositive,
+            )
+            Spacer(Modifier.height(12.dp))
+        }
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -113,8 +125,12 @@ fun EditReportSheetContent(
         Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = { selectedType?.let { onSubmit(it, description) } },
-            enabled = selectedType != null,
+            onClick = {
+                val type = selectedType ?: return@Button
+                val value = parseAuraAmount(amount) ?: return@Button
+                onSubmit(type.withAmount(value), description)
+            },
+            enabled = selectedType != null && parseAuraAmount(amount) != null,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(

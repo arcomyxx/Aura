@@ -2,7 +2,8 @@ package com.dubois.aura.model
 
 /**
  * Type d'événement sélectionnable dans la feuille « Signaler un événement ».
- * Chaque type applique un [delta] fixe au score d'aura de la cible.
+ * [delta] est le montant proposé par défaut ; l'utilisateur peut le modifier
+ * (le signe reste celui du type).
  */
 data class EventType(
     val id: String,
