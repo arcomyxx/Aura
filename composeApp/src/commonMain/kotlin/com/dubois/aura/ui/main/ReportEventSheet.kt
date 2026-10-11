@@ -21,7 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -37,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dubois.aura.model.EventCatalog
@@ -64,7 +62,6 @@ fun ReportEventSheetContent(
     var target by remember { mutableStateOf(initialTarget) }
     var selectedType by remember { mutableStateOf<EventType?>(null) }
     var description by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -128,10 +125,7 @@ fun ReportEventSheetContent(
                     EventTypeCard(
                         type = type,
                         selected = selectedType?.id == type.id,
-                        onClick = {
-                            selectedType = type
-                            amount = kotlin.math.abs(type.delta).toString()
-                        },
+                        onClick = { selectedType = type },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -141,14 +135,6 @@ fun ReportEventSheetContent(
         }
 
         Spacer(Modifier.height(8.dp))
-        selectedType?.let { type ->
-            AuraAmountField(
-                amount = amount,
-                onAmountChange = { amount = it },
-                positive = type.isPositive,
-            )
-            Spacer(Modifier.height(12.dp))
-        }
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -168,13 +154,12 @@ fun ReportEventSheetContent(
         )
         Spacer(Modifier.height(16.dp))
 
-        val ready = target != null && selectedType != null && parseAuraAmount(amount) != null
+        val ready = target != null && selectedType != null
         Button(
             onClick = {
                 val t = target ?: return@Button
                 val type = selectedType ?: return@Button
-                val value = parseAuraAmount(amount) ?: return@Button
-                onSubmit(t.profile, type.withAmount(value), description)
+                onSubmit(t.profile, type, description)
             },
             enabled = ready,
             modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -189,58 +174,6 @@ fun ReportEventSheetContent(
             Text("Valider l'événement", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
         }
     }
-}
-
-/** Montant d'aura maximal saisissable pour un signalement. */
-private const val MAX_AURA_AMOUNT = 1_000_000
-
-/** Montant saisi (valeur absolue) ou null s'il est vide, nul ou hors bornes. */
-internal fun parseAuraAmount(text: String): Int? =
-    text.toIntOrNull()?.takeIf { it in 1..MAX_AURA_AMOUNT }
-
-/** Applique un montant (valeur absolue) au type en conservant son signe. */
-internal fun EventType.withAmount(amount: Int): EventType =
-    copy(delta = if (isPositive) amount else -amount)
-
-/** Champ de saisie du montant d'aura, préfixé du signe imposé par le type. */
-@Composable
-internal fun AuraAmountField(
-    amount: String,
-    onAmountChange: (String) -> Unit,
-    positive: Boolean,
-) {
-    val signColor = if (positive) AuraPalette.Positive else AuraPalette.Negative
-    SectionLabel("Montant d'aura")
-    Spacer(Modifier.height(10.dp))
-    OutlinedTextField(
-        value = amount,
-        onValueChange = { new ->
-            val digits = new.filter { it.isDigit() }.take(MAX_AURA_AMOUNT.toString().length)
-            onAmountChange(digits)
-        },
-        prefix = {
-            Text(
-                if (positive) "+" else "−",
-                color = signColor,
-                fontWeight = FontWeight.Bold,
-            )
-        },
-        suffix = { Text("aura", color = AuraPalette.TextMuted) },
-        isError = amount.isNotEmpty() && parseAuraAmount(amount) == null,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = signColor,
-            unfocusedTextColor = signColor,
-            focusedContainerColor = AuraPalette.Surface,
-            unfocusedContainerColor = AuraPalette.Surface,
-            focusedBorderColor = AuraPalette.Primary,
-            unfocusedBorderColor = AuraPalette.CardBorder,
-            cursorColor = AuraPalette.Primary,
-        ),
-    )
 }
 
 @Composable
