@@ -129,7 +129,7 @@ fun AuraCard(
 }
 
 /**
- * Barre d'onglets segmentée (Profil / Amis / Classement). Le segment actif
+ * Barre d'onglets segmentée (Profil / Amis / Battle / Classement). Le segment actif
  * porte un dégradé violet.
  */
 @Composable
@@ -152,6 +152,7 @@ fun AuraTabBar(
             TabSegment(
                 label = label,
                 active = index == selected,
+                fontSize = if (tabs.size > 3) 13 else 14,
                 onClick = { onSelect(index) },
                 modifier = Modifier.weight(1f),
             )
@@ -165,6 +166,7 @@ private fun TabSegment(
     active: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    fontSize: Int = 14,
 ) {
     val shape = RoundedCornerShape(24.dp)
     val base = modifier
@@ -182,9 +184,11 @@ private fun TabSegment(
         Text(
             text = label,
             color = if (active) AuraPalette.OnPrimary else AuraPalette.TextSecondary,
-            fontSize = 14.sp,
+            fontSize = fontSize.sp,
             fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
             textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false,
         )
     }
 }

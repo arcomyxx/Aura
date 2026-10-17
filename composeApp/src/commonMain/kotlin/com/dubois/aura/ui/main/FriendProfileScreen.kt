@@ -277,7 +277,7 @@ private fun ActionChip(label: String, color: androidx.compose.ui.graphics.Color,
 }
 
 @Composable
-private fun BackButton(onClick: () -> Unit) {
+internal fun BackButton(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(40.dp)

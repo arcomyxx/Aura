@@ -30,20 +30,24 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlin.time.Clock
 import com.dubois.aura.model.AuraEvent
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.ui.components.AuraHeader
 import com.dubois.aura.ui.components.AuraTabBar
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.colorFromHex
+import com.dubois.aura.util.signed
+import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
 
-private val TABS = listOf("Profil", "Amis", "Classement")
+private val TABS = listOf("Profil", "Amis", "Battle", "Classement")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
+    battleViewModel: BattleViewModel,
     onLogout: () -> Unit,
 ) {
     val me by viewModel.me.collectAsState()
@@ -58,6 +62,19 @@ fun MainScreen(
     val selectedFriend by viewModel.selectedFriend.collectAsState()
     val friendEvents by viewModel.friendEvents.collectAsState()
 
+    val liveBattles by battleViewModel.liveBattles.collectAsState()
+    val battleHistory by battleViewModel.history.collectAsState()
+    val currentBattle by battleViewModel.current.collectAsState()
+    val battleSupporters by battleViewModel.supporters.collectAsState()
+    val battleNow by battleViewModel.now.collectAsState()
+    val pendingPoints by battleViewModel.pendingPoints.collectAsState()
+    val combo by battleViewModel.combo.collectAsState()
+    val myBestCombo by battleViewModel.myBestCombo.collectAsState()
+    val readyAt by battleViewModel.readyAt.collectAsState()
+    val hype by battleViewModel.hype.collectAsState()
+    val launching by battleViewModel.launching.collectAsState()
+    val battleMessage by battleViewModel.message.collectAsState()
+
     var selectedTab by remember { mutableStateOf(0) }
     var reportTarget by remember { mutableStateOf<RankedUser?>(null) }
     var showSheet by remember { mutableStateOf(false) }
@@ -67,7 +84,33 @@ fun MainScreen(
     val editSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val editReportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(Unit) {
+        viewModel.load()
+        battleViewModel.load()
+    }
+
+    // Aura créditée à la fin d'une de mes battles -> message + rechargement du score.
+    LaunchedEffect(Unit) {
+        battleViewModel.auraEarned.collect { aura ->
+            viewModel.showMessage("Battle terminée : ${aura.signed()} aura !")
+            viewModel.load()
+        }
+    }
+    LaunchedEffect(battleMessage) {
+        battleMessage?.let {
+            viewModel.showMessage(it)
+            battleViewModel.clearMessage()
+        }
+    }
+
+    // Horloge de l'onglet Battle (expiration des battles live, chronos).
+    var tabNow by remember { mutableStateOf(Clock.System.now().toEpochMilliseconds()) }
+    LaunchedEffect(selectedTab) {
+        while (selectedTab == 2) {
+            tabNow = Clock.System.now().toEpochMilliseconds()
+            delay(1_000)
+        }
+    }
 
     // Applique la couleur d'accent choisie par l'utilisateur à tout le thème.
     LaunchedEffect(me?.profile?.themeColor) {
@@ -128,6 +171,24 @@ fun MainScreen(
                     onOpenProfile = { viewModel.openFriend(it) },
                     modifier = Modifier.weight(1f),
                 )
+                2 -> {
+                    val usersByUid = (friends + listOfNotNull(me)).associateBy { it.profile.uid }
+                    val myUid = battleViewModel.myUid
+                    BattleTab(
+                        myLiveBattle = liveBattles.firstOrNull { it.hostUid == myUid && it.isLive(tabNow) },
+                        friendLiveBattles = liveBattles.filter {
+                            it.hostUid != myUid && it.hostUid in usersByUid && it.isLive(tabNow)
+                        },
+                        history = battleHistory,
+                        usersByUid = usersByUid,
+                        myUid = myUid,
+                        now = tabNow,
+                        launching = launching,
+                        onLaunch = { battleViewModel.launch(me?.profile?.displayName ?: "") },
+                        onOpen = { battleViewModel.open(it, me?.profile?.displayName ?: "") },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 else -> LeaderboardTab(
                     leaderboard = leaderboard,
                     modifier = Modifier.weight(1f),
@@ -179,6 +240,24 @@ fun MainScreen(
                 onBack = { viewModel.closeFriend() },
                 onEditEvent = { editingEvent = it },
                 onDeleteEvent = { viewModel.deleteEvent(it) },
+            )
+        }
+
+        // Battle ouverte (superposée par-dessus les onglets)
+        currentBattle?.let { battle ->
+            BattleScreen(
+                battle = battle,
+                host = (friends + listOfNotNull(me)).firstOrNull { it.profile.uid == battle.hostUid },
+                supporters = battleSupporters,
+                myUid = battleViewModel.myUid,
+                now = battleNow,
+                pendingPoints = pendingPoints,
+                combo = combo,
+                myBestCombo = myBestCombo,
+                readyAt = readyAt,
+                hype = hype,
+                onTap = battleViewModel::tap,
+                onBack = battleViewModel::close,
             )
         }
 

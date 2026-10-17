@@ -234,5 +234,8 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    /** Affiche un message transitoire venant d'un autre écran (ex. battles). */
+    fun showMessage(text: String) { _message.value = text }
+
     fun clearMessage() { _message.value = null }
 }

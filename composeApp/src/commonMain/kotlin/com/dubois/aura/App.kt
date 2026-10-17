@@ -14,6 +14,7 @@ import com.dubois.aura.ui.RegisterScreen
 import com.dubois.aura.ui.main.MainScreen
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.AuraTheme
+import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
 import com.dubois.aura.viewmodel.UserViewModel
 
@@ -23,6 +24,7 @@ fun App() {
     val navController = rememberNavController()
     val userViewModel = remember { UserViewModel() }
     val mainViewModel = remember { MainViewModel() }
+    val battleViewModel = remember { BattleViewModel() }
 
     // Si une session Firebase est déjà ouverte, on va directement à l'écran
     // principal (Firebase persiste la connexion sur l'appareil).
@@ -70,10 +72,11 @@ fun App() {
                 )
             }
 
-            // ── Expérience principale (Profil / Amis / Classement) ─
+            // ── Expérience principale (Profil / Amis / Battle / Classement) ─
             composable(Screen.Main.route) {
                 MainScreen(
                     viewModel = mainViewModel,
+                    battleViewModel = battleViewModel,
                     onLogout = {
                         userViewModel.logout()
                         AuraPalette.setAccent(null) // revient au thème par défaut
