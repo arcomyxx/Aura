@@ -68,7 +68,12 @@ private fun LeaderboardRow(user: RankedUser) {
                 }
             }
             Spacer(Modifier.width(10.dp))
-            InitialsAvatar(name = user.profile.displayName, ringColor = tierColor, size = 42)
+            InitialsAvatar(
+                name = user.profile.displayName,
+                ringColor = tierColor,
+                size = 42,
+                auraScore = user.profile.auraScore,
+            )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

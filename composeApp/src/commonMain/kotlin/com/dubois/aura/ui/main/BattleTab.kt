@@ -220,6 +220,7 @@ private fun LiveBattleRow(battle: Battle, host: RankedUser?, now: Long, onClick:
                 ringColor = accent,
                 size = 44,
                 photoBase64 = host?.profile?.photoUrl ?: "",
+                auraScore = host?.profile?.auraScore,
             )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {

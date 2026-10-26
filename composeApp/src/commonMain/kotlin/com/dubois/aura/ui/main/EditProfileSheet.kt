@@ -217,7 +217,7 @@ fun EditProfileSheetContent(
             OutlinedTextField(
                 value = themeHex,
                 onValueChange = { themeHex = it.take(7) },
-                placeholder = { Text("#8B5CF6", color = AuraPalette.TextMuted) },
+                placeholder = { Text("#FFA31A", color = AuraPalette.TextMuted) },
                 singleLine = true,
                 prefix = { Text("#", color = AuraPalette.TextMuted) },
                 modifier = Modifier.weight(1f),

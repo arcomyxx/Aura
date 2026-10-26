@@ -129,6 +129,7 @@ fun BattleScreen(
                     ringColor = accent,
                     size = 48,
                     photoBase64 = host?.profile?.photoUrl ?: "",
+                    auraScore = host?.profile?.auraScore,
                 )
             }
             Spacer(Modifier.height(18.dp))

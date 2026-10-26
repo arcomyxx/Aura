@@ -184,7 +184,7 @@ private fun SearchResultRow(user: UserProfile, onAdd: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            InitialsAvatar(name = user.displayName, ringColor = tierColor, size = 42)
+            InitialsAvatar(name = user.displayName, ringColor = tierColor, size = 42, auraScore = user.auraScore)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -245,6 +245,7 @@ private fun FriendRow(friend: RankedUser, onReport: () -> Unit, onOpenProfile: (
                 ringColor = accent ?: tierColor,
                 size = 46,
                 photoBase64 = friend.profile.photoUrl,
+                auraScore = friend.profile.auraScore,
             )
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {

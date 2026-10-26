@@ -143,6 +143,7 @@ fun MainScreen(
             AuraHeader(
                 displayName = me?.profile?.displayName ?: "",
                 photoBase64 = me?.profile?.photoUrl ?: "",
+                auraScore = me?.profile?.auraScore,
                 onEditProfile = { showEditProfile = true },
                 onLogout = onLogout,
             )

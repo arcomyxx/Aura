@@ -53,7 +53,8 @@ fun initialsOf(name: String): String {
 /**
  * Avatar circulaire, avec anneau coloré (couleur de tier). Affiche la photo de
  * profil ([photoBase64], stockée en base64) si elle est présente et décodable,
- * sinon les initiales du nom.
+ * sinon les initiales du nom. Si [auraScore] est fourni, l'avatar est entouré
+ * de l'aura animée correspondant à ce score.
  */
 @Composable
 fun InitialsAvatar(
@@ -63,12 +64,16 @@ fun InitialsAvatar(
     size: Int = 44,
     fontSize: Int = 15,
     photoBase64: String = "",
+    auraScore: Int? = null,
 ) {
     val bitmap = remember(photoBase64) { decodeImageBitmap(photoBase64) }
     Box(
         modifier = modifier
+            .then(if (auraScore != null) Modifier.auraFlame(auraScore, compact = size < 80) else Modifier)
             .size(size.dp)
             .clip(CircleShape)
+            // fond opaque : l'aura dessinée derrière ne doit pas transparaître
+            .background(AuraPalette.Surface)
             .background(ringColor.copy(alpha = 0.14f))
             .border(BorderStroke(1.5.dp, ringColor.copy(alpha = 0.7f)), CircleShape),
         contentAlignment = Alignment.Center
@@ -130,7 +135,7 @@ fun AuraCard(
 
 /**
  * Barre d'onglets segmentée (Profil / Amis / Battle / Classement). Le segment actif
- * porte un dégradé violet.
+ * porte le dégradé de l'accent (jaune -> orange par défaut).
  */
 @Composable
 fun AuraTabBar(
@@ -202,6 +207,7 @@ fun AuraHeader(
     displayName: String,
     modifier: Modifier = Modifier,
     photoBase64: String = "",
+    auraScore: Int? = null,
     onEditProfile: () -> Unit = {},
     onLogout: () -> Unit = {},
 ) {
@@ -228,6 +234,7 @@ fun AuraHeader(
                 size = 48,
                 fontSize = 16,
                 photoBase64 = photoBase64,
+                auraScore = auraScore,
                 modifier = Modifier.clickableNoRipple { menuOpen = true },
             )
             DropdownMenu(

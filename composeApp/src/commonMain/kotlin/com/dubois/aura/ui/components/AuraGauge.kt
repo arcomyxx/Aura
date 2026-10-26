@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,8 +25,9 @@ import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.util.compact
 
 /**
- * Jauge d'aura circulaire : anneaux concentriques, arc de progression coloré
- * selon le tier, et score compact au centre.
+ * Jauge d'aura circulaire entourée d'une aura de flammes animée (voir
+ * [auraFlame]) : anneaux concentriques, arc de progression coloré selon le
+ * tier, et score compact au centre.
  *
  * @param score score d'aura courant
  * @param tierColor couleur du tier (pour l'arc et le score)
@@ -43,17 +45,29 @@ fun AuraGauge(
         ((score - tier.minScore).toFloat() / (next.minScore - tier.minScore)).coerceIn(0f, 1f)
     }
 
-    Box(modifier = modifier.size(diameter.dp), contentAlignment = Alignment.Center) {
+    // Réserve la place des flammes au-dessus de la jauge pour qu'elles ne soient pas coupées.
+    val headroom = diameter / 2f * auraHeadroom(score)
+    Box(
+        modifier = modifier
+            .padding(top = headroom.dp, start = 24.dp, end = 24.dp)
+            .size(diameter.dp)
+            .auraFlame(score),
+        contentAlignment = Alignment.Center,
+    ) {
         Canvas(Modifier.size(diameter.dp)) {
             val stroke = size.minDimension * 0.045f
             val inset = stroke * 2
             val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
             val topLeft = Offset(inset, inset)
 
-            // Halo central
+            // Disque sombre central (lisibilité du score par-dessus l'aura) + halo
+            drawCircle(
+                color = AuraPalette.Background.copy(alpha = 0.88f),
+                radius = size.minDimension * 0.5f - stroke / 2,
+            )
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(tierColor.copy(alpha = 0.18f), Color.Transparent),
+                    colors = listOf(tierColor.copy(alpha = 0.22f), Color.Transparent),
                     center = center,
                     radius = size.minDimension * 0.42f,
                 ),
@@ -79,7 +93,7 @@ fun AuraGauge(
             // Arc de progression
             drawArc(
                 brush = Brush.sweepGradient(
-                    listOf(tierColor.copy(alpha = 0.6f), tierColor, tierColor)
+                    listOf(Color(0xFFFFE680), tierColor, tierColor)
                 ),
                 startAngle = -90f,
                 sweepAngle = 360f * progress,

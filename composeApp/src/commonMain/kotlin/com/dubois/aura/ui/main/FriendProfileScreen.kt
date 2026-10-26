@@ -108,6 +108,7 @@ fun FriendProfileScreen(
                     ringColor = accent,
                     size = 48,
                     photoBase64 = friend.profile.photoUrl,
+                    auraScore = friend.profile.auraScore,
                 )
             }
 
