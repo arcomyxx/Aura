@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +46,8 @@ import com.dubois.aura.model.RankedUser
 import com.dubois.aura.model.UserProfile
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
+import com.dubois.aura.ui.components.AuraIcon
+import com.dubois.aura.ui.components.IconCircleButton
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.color
 import com.dubois.aura.util.signed
@@ -118,7 +122,7 @@ fun ReportEventSheetContent(
         // Grille des types d'événements (2 colonnes)
         EventCatalog.all.chunked(2).forEach { rowItems ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 rowItems.forEach { type ->
@@ -126,7 +130,7 @@ fun ReportEventSheetContent(
                         type = type,
                         selected = selectedType?.id == type.id,
                         onClick = { selectedType = type },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
                 if (rowItems.size == 1) Spacer(Modifier.weight(1f))
@@ -178,16 +182,14 @@ fun ReportEventSheetContent(
 
 @Composable
 private fun CloseButton(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(34.dp)
-            .clip(CircleShape)
-            .background(AuraPalette.SurfaceElevated)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("✕", color = AuraPalette.TextSecondary, fontSize = 15.sp)
-    }
+    IconCircleButton(
+        icon = AuraIcon.Close,
+        onClick = onClick,
+        size = 34,
+        iconSize = 12,
+        tint = AuraPalette.TextSecondary,
+        bordered = false,
+    )
 }
 
 @Composable

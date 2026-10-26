@@ -23,7 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -43,7 +45,7 @@ import com.dubois.aura.viewmodel.MainViewModel
 
 private val TABS = listOf("Profil", "Amis", "Battle", "Classement")
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
@@ -110,6 +112,12 @@ fun MainScreen(
             tabNow = Clock.System.now().toEpochMilliseconds()
             delay(1_000)
         }
+    }
+
+    // Geste / bouton « retour » du système : ferme la battle ou le profil
+    // d'ami affiché par-dessus les onglets au lieu de quitter l'application.
+    BackHandler(enabled = currentBattle != null || selectedFriend != null) {
+        if (currentBattle != null) battleViewModel.close() else viewModel.closeFriend()
     }
 
     // Applique la couleur d'accent choisie par l'utilisateur à tout le thème.
@@ -259,6 +267,7 @@ fun MainScreen(
                 hype = hype,
                 onTap = battleViewModel::tap,
                 onBack = battleViewModel::close,
+                onCancel = battleViewModel::cancel,
             )
         }
 

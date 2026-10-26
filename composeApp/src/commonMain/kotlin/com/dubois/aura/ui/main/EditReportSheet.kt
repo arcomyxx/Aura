@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import com.dubois.aura.model.AuraEvent
 import com.dubois.aura.model.EventCatalog
 import com.dubois.aura.model.EventType
+import com.dubois.aura.ui.components.AuraIcon
+import com.dubois.aura.ui.components.IconCircleButton
 import com.dubois.aura.ui.theme.AuraPalette
 
 /**
@@ -131,14 +133,12 @@ fun EditReportSheetContent(
 
 @Composable
 private fun CloseButtonEditReport(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(34.dp)
-            .clip(CircleShape)
-            .background(AuraPalette.SurfaceElevated)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("✕", color = AuraPalette.TextSecondary, fontSize = 15.sp)
-    }
+    IconCircleButton(
+        icon = AuraIcon.Close,
+        onClick = onClick,
+        size = 34,
+        iconSize = 12,
+        tint = AuraPalette.TextSecondary,
+        bordered = false,
+    )
 }

@@ -71,7 +71,9 @@ private class AuraStyle(level: Float, compact: Boolean) {
     /** Vitesse de montée des flammes. */
     val speed = mix(0.3f, 1.5f, t)
     val alpha = mix(0.35f, 0.92f, t)
-    val layers = 1 + (if (level >= 1f) 1 else 0) + (if (level >= 3f) 1 else 0)
+    // En compact, sous « Étincelle », une flamme minuscule ressemble à un défaut :
+    // on ne garde que le halo.
+    val layers = if (compact && level < 1f) 0 else 1 + (if (level >= 1f) 1 else 0) + (if (level >= 3f) 1 else 0)
     val sparks = ((level - 1.5f) * 3f).toInt().coerceAtLeast(0).let { if (compact) it / 2 else it }
     /** Intervalle entre deux éclairs (s), 0 = pas d'éclairs. */
     val lightningEvery = if (level >= 4.5f) mix(2.4f, 0.9f, (level - 4.5f) / 0.5f) else 0f

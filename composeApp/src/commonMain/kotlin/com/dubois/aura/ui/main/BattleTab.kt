@@ -30,12 +30,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dubois.aura.model.Battle
 import com.dubois.aura.model.BattleRules
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.ui.components.AuraCard
+import com.dubois.aura.ui.components.AuraIcon
+import com.dubois.aura.ui.components.AuraIconGlyph
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.components.clickableNoRipple
@@ -144,6 +148,7 @@ private fun LaunchCard(
                 color = AuraPalette.TextSecondary,
                 fontSize = 14.sp,
                 lineHeight = 19.sp,
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(18.dp))
             val live = myLiveBattle?.takeIf { it.isLive(now) }
@@ -206,7 +211,15 @@ internal fun LiveBadge(modifier: Modifier = Modifier) {
             Modifier.size(7.dp).alpha(dotAlpha).clip(CircleShape).background(AuraPalette.Negative)
         )
         Spacer(Modifier.width(5.dp))
-        Text("LIVE", color = AuraPalette.Negative, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(
+            "LIVE",
+            color = AuraPalette.Negative,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            maxLines = 1,
+            softWrap = false,
+        )
     }
 }
 
@@ -224,24 +237,30 @@ private fun LiveBattleRow(battle: Battle, host: RankedUser?, now: Long, onClick:
             )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = battle.hostName.ifBlank { "Anonyme" },
-                        color = AuraPalette.TextPrimary,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    LiveBadge()
-                }
-                Spacer(Modifier.height(3.dp))
                 Text(
-                    text = "${battle.score.grouped()} aura · encore ${battle.remainingMs(now) / 1000}s",
-                    color = AuraPalette.TextSecondary,
-                    fontSize = 13.sp,
+                    text = battle.hostName.ifBlank { "Anonyme" },
+                    color = AuraPalette.TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LiveBadge()
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "${battle.score.grouped()} aura · ${battle.remainingMs(now) / 1000}s",
+                        color = AuraPalette.TextSecondary,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            Text("Rejoindre →", color = accent, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Spacer(Modifier.width(10.dp))
+            // Toute la carte est cliquable : une flèche suffit à l'indiquer.
+            AuraIconGlyph(AuraIcon.Forward, tint = accent, size = 18)
         }
     }
 }
@@ -265,21 +284,28 @@ private fun HistoryRow(battle: Battle, host: RankedUser?, isMine: Boolean, now: 
                         color = AuraPalette.TextPrimary,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text(relativeTime(battle.startedAt, now), color = AuraPalette.TextMuted, fontSize = 12.sp)
+                    Text(relativeTime(battle.startedAt, now), color = AuraPalette.TextMuted, fontSize = 12.sp, maxLines = 1, softWrap = false)
                 }
                 Spacer(Modifier.height(3.dp))
                 Text(
-                    text = "${battle.supporterUids.size} supporters · combo max x${battle.maxCombo} · ${battle.taps.grouped()} taps",
+                    text = "${battle.supporterUids.size} supporters · ${battle.taps.grouped()} taps",
                     color = AuraPalette.TextSecondary,
                     fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Spacer(Modifier.width(10.dp))
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Center) {
                 Text(battle.score.grouped(), color = AuraPalette.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                if (isMine && battle.auraAwarded > 0) {
+                if (battle.isCancelled) {
+                    Text("Annulée", color = AuraPalette.Negative, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                } else if (isMine && battle.auraAwarded > 0) {
                     Text(
                         text = "${battle.auraAwarded.signed()} aura",
                         color = AuraPalette.Positive,

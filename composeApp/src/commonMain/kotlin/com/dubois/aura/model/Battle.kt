@@ -8,8 +8,9 @@ import kotlinx.serialization.Serializable
  * faire grimper [score] en temps réel. À la fin, l'hôte encaisse
  * [BattleRules.auraFor] (une fraction du score) dans son `auraScore`.
  *
- * `status` : "live" | "ended". Une battle dont [endsAt] est dépassé est
- * considérée terminée même si l'hôte ne l'a pas encore clôturée.
+ * `status` : "live" | "ended" | "cancelled". Une battle dont [endsAt] est
+ * dépassé est considérée terminée même si l'hôte ne l'a pas encore clôturée.
+ * Une battle annulée par l'hôte ne rapporte aucune aura.
  */
 @Serializable
 data class Battle(
@@ -26,6 +27,8 @@ data class Battle(
     val supporterUids: List<String> = emptyList(),
     val auraAwarded: Int = 0,
 ) {
+    val isCancelled: Boolean get() = status == "cancelled"
+
     fun isLive(now: Long): Boolean = status == "live" && now < endsAt
     fun remainingMs(now: Long): Long = (endsAt - now).coerceAtLeast(0L)
 }

@@ -43,6 +43,8 @@ import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.components.clickableNoRipple
 import com.dubois.aura.ui.theme.AccentPresets
+import com.dubois.aura.ui.components.AuraIcon
+import com.dubois.aura.ui.components.IconCircleButton
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.colorFromHex
 import com.dubois.aura.ui.theme.toHex
@@ -193,7 +195,7 @@ fun EditProfileSheetContent(
         AccentPresets.chunked(5).forEach { rowColors ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 rowColors.forEach { preset ->
                     ColorSwatch(
@@ -276,14 +278,12 @@ private fun editFieldColors() = OutlinedTextFieldDefaults.colors(
 
 @Composable
 private fun CloseButtonEdit(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(34.dp)
-            .clip(CircleShape)
-            .background(AuraPalette.SurfaceElevated)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("✕", color = AuraPalette.TextSecondary, fontSize = 15.sp)
-    }
+    IconCircleButton(
+        icon = AuraIcon.Close,
+        onClick = onClick,
+        size = 34,
+        iconSize = 12,
+        tint = AuraPalette.TextSecondary,
+        bordered = false,
+    )
 }

@@ -138,6 +138,27 @@ class BattleRepository {
         }
     }
 
+    /**
+     * Annule une battle en cours dont l'utilisateur courant est l'hôte : elle
+     * passe en « cancelled » et ne rapporte aucune aura. Renvoie false si elle
+     * n'était plus en cours (déjà clôturée ou annulée).
+     */
+    suspend fun cancelBattle(battleId: String): Result<Boolean> {
+        return try {
+            val myUid = myUid() ?: return Result.failure(IllegalStateException("Non connecté"))
+            val battleRef = battles.document(battleId)
+            val cancelled = firestore.runTransaction {
+                val battle = get(battleRef).data(Battle.serializer())
+                if (battle.hostUid != myUid || battle.status != "live") return@runTransaction false
+                update(battleRef, "status" to "cancelled", "auraAwarded" to 0)
+                true
+            }
+            Result.success(cancelled)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     /** Battles dont [uid] est l'hôte. */
     suspend fun myBattles(uid: String): List<Battle> =
         battles.where { "hostUid" equalTo uid }

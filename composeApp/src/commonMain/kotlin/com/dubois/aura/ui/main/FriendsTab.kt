@@ -38,6 +38,8 @@ import com.dubois.aura.model.FriendRequest
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.model.UserProfile
 import com.dubois.aura.ui.components.AuraCard
+import com.dubois.aura.ui.components.AuraIcon
+import com.dubois.aura.ui.components.IconCircleButton
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.theme.AuraPalette
@@ -307,15 +309,11 @@ private fun GhostButton(text: String, onClick: () -> Unit, modifier: Modifier = 
 
 @Composable
 private fun PlusButton(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .clip(CircleShape)
-            .background(AuraPalette.SurfaceElevated)
-            .border(BorderStroke(1.dp, AuraPalette.CardBorder), CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("+", color = AuraPalette.TextSecondary, fontSize = 20.sp, fontWeight = FontWeight.Medium)
-    }
+    IconCircleButton(
+        icon = AuraIcon.Plus,
+        onClick = onClick,
+        size = 36,
+        iconSize = 14,
+        tint = AuraPalette.TextSecondary,
+    )
 }

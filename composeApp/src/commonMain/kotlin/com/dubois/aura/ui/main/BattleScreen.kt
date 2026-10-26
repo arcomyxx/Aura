@@ -32,6 +32,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import com.dubois.aura.ui.components.blockTouchesBehind
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -85,15 +90,18 @@ fun BattleScreen(
     hype: Float,
     onTap: (BattleAction) -> Int?,
     onBack: () -> Unit,
+    onCancel: () -> Unit,
 ) {
     val accent = colorFromHex(battle.hostThemeColor) ?: AuraPalette.Primary
     val isHost = battle.hostUid == myUid
     val live = battle.isLive(now)
     val remaining = battle.remainingMs(now)
+    var confirmCancel by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .blockTouchesBehind()
             .background(AuraPalette.Background)
             .background(
                 Brush.radialGradient(
@@ -147,6 +155,20 @@ fun BattleScreen(
                 }
                 Spacer(Modifier.height(6.dp))
                 TimerBar(fraction = remaining / BattleRules.DURATION_MS.toFloat(), color = accent)
+                if (isHost) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "✕ Annuler la battle",
+                        color = AuraPalette.Negative,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(BorderStroke(1.dp, AuraPalette.Negative.copy(alpha = 0.5f)), RoundedCornerShape(10.dp))
+                            .clickable { confirmCancel = true }
+                            .padding(horizontal = 14.dp, vertical = 7.dp),
+                    )
+                }
             }
 
             LiveScore(score = battle.score + pendingPoints, color = accent)
@@ -188,6 +210,34 @@ fun BattleScreen(
                 )
             }
         }
+    }
+
+    // Confirmation d'annulation (hôte)
+    if (confirmCancel && live) {
+        AlertDialog(
+            onDismissRequest = { confirmCancel = false },
+            containerColor = AuraPalette.SurfaceElevated,
+            title = { Text("Annuler la battle ?", color = AuraPalette.TextPrimary) },
+            text = {
+                Text(
+                    "La battle s'arrête pour tout le monde et aucune aura ne sera gagnée.",
+                    color = AuraPalette.TextSecondary,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmCancel = false
+                    onCancel()
+                }) {
+                    Text("Annuler la battle", color = AuraPalette.Negative, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmCancel = false }) {
+                    Text("Continuer", color = AuraPalette.TextSecondary)
+                }
+            },
+        )
     }
 }
 
@@ -507,16 +557,23 @@ private fun BattleResults(
     val mvp = supporters.firstOrNull()
     val mine = supporters.firstOrNull { it.uid == myUid }
     Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("🏁 BATTLE TERMINÉE", color = AuraPalette.TextPrimary, fontWeight = FontWeight.Black, fontSize = 18.sp, letterSpacing = 1.sp)
+        Text(
+            text = if (battle.isCancelled) "🚫 BATTLE ANNULÉE" else "🏁 BATTLE TERMINÉE",
+            color = AuraPalette.TextPrimary,
+            fontWeight = FontWeight.Black,
+            fontSize = 18.sp,
+            letterSpacing = 1.sp,
+        )
         Spacer(Modifier.height(8.dp))
         val aura = if (battle.status == "ended") battle.auraAwarded else BattleRules.auraFor(battle.score)
         Text(
             text = when {
+                battle.isCancelled -> "Annulée par l'hôte : aucune aura gagnée"
                 isHost && battle.status == "ended" -> "${aura.signed()} aura ajoutée à ton score"
                 isHost -> "${aura.signed()} aura en cours de crédit…"
                 else -> "${battle.hostName.ifBlank { "L'hôte" }} gagne ${aura.signed()} aura"
             },
-            color = AuraPalette.Positive,
+            color = if (battle.isCancelled) AuraPalette.Negative else AuraPalette.Positive,
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp,
         )

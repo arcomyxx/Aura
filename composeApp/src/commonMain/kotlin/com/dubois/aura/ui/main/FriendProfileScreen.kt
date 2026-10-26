@@ -32,15 +32,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import com.dubois.aura.ui.components.AuraIcon
+import com.dubois.aura.ui.components.IconCircleButton
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dubois.aura.model.AuraEvent
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.ui.components.AuraCard
 import com.dubois.aura.ui.components.AuraGauge
+import com.dubois.aura.ui.components.blockTouchesBehind
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.components.clickableNoRipple
@@ -74,6 +78,7 @@ fun FriendProfileScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .blockTouchesBehind()
             .background(AuraPalette.Background)
             .background(
                 Brush.radialGradient(
@@ -140,6 +145,7 @@ fun FriendProfileScreen(
                             color = AuraPalette.TextSecondary,
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
+                            textAlign = TextAlign.Center,
                         )
                     }
                     Spacer(Modifier.height(28.dp))
@@ -279,15 +285,5 @@ private fun ActionChip(label: String, color: androidx.compose.ui.graphics.Color,
 
 @Composable
 internal fun BackButton(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(AuraPalette.SurfaceElevated)
-            .border(BorderStroke(1.dp, AuraPalette.CardBorder), CircleShape)
-            .clickableNoRipple(onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("←", color = AuraPalette.TextPrimary, fontSize = 18.sp)
-    }
+    IconCircleButton(icon = AuraIcon.Back, onClick = onClick)
 }

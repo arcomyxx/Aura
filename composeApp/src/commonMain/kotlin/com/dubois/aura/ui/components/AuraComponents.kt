@@ -31,6 +31,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -42,11 +43,13 @@ import com.dubois.aura.util.decodeImageBitmap
 
 /** Retourne les initiales (1 à 2 lettres) d'un nom d'affichage. */
 fun initialsOf(name: String): String {
-    val parts = name.trim().split(" ").filter { it.isNotBlank() }
+    // Première lettre de chaque mot, en ignorant les mots sans lettre (emojis…)
+    // pour ne jamais couper un emoji en deux (« M� »).
+    val letters = name.trim().split(" ").mapNotNull { word -> word.firstOrNull { it.isLetterOrDigit() } }
     return when {
-        parts.isEmpty() -> "?"
-        parts.size == 1 -> parts[0].take(1).uppercase()
-        else -> (parts[0].take(1) + parts[1].take(1)).uppercase()
+        letters.isEmpty() -> "?"
+        letters.size == 1 -> letters[0].uppercase()
+        else -> (letters[0].uppercase() + letters[1].uppercase())
     }
 }
 
@@ -159,7 +162,7 @@ fun AuraTabBar(
                 active = index == selected,
                 fontSize = if (tabs.size > 3) 13 else 14,
                 onClick = { onSelect(index) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(label.length + 4f),
             )
         }
     }
@@ -262,6 +265,12 @@ fun AuraHeader(
         }
     }
 }
+
+/**
+ * Pour un écran superposé aux onglets : intercepte les touches pour qu'elles
+ * n'atteignent pas l'écran situé dessous (un fond seul ne les bloque pas).
+ */
+fun Modifier.blockTouchesBehind(): Modifier = this.pointerInput(Unit) {}
 
 /** Clic sans ondulation (pour les libellés-actions type "+ Signaler"). */
 fun Modifier.clickableNoRipple(onClick: () -> Unit): Modifier =

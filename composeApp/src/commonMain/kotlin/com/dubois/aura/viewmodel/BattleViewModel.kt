@@ -185,6 +185,21 @@ class BattleViewModel : ViewModel() {
         refreshHistory()
     }
 
+    /** Annule la battle ouverte (hôte uniquement) : aucune aura n'est créditée. */
+    fun cancel() {
+        val battle = _current.value ?: return
+        if (battle.hostUid != myUid) return
+        viewModelScope.launch {
+            battleRepo.cancelBattle(battle.id)
+                .onSuccess { cancelled ->
+                    finishJobs.remove(battle.id)?.cancel()
+                    _message.value = if (cancelled) "Battle annulée" else "Cette battle est déjà terminée"
+                    close()
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
     private fun closeSession() {
         sessionJobs.forEach { it.cancel() }
         sessionJobs = emptyList()
