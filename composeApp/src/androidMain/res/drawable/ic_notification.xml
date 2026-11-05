@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Éclair stylisé pour les notifications Aura -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M7,2L4,13L10,13L6,22L20,9L13,9L17,2Z" />
+</vector>

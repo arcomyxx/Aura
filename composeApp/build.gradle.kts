@@ -42,8 +42,10 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.core.ktx)
 
             implementation(project.dependencies.platform("com.google.firebase:firebase-bom:32.7.0"))
+            implementation("com.google.firebase:firebase-messaging")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

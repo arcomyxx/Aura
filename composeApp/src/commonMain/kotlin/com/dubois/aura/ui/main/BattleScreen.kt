@@ -91,6 +91,8 @@ fun BattleScreen(
     onTap: (BattleAction) -> Int?,
     onBack: () -> Unit,
     onCancel: () -> Unit,
+    onShareBattle: () -> Unit = {},
+    onInvite: () -> Unit = {},
 ) {
     val accent = colorFromHex(battle.hostThemeColor) ?: AuraPalette.Primary
     val isHost = battle.hostUid == myUid
@@ -196,6 +198,7 @@ fun BattleScreen(
                         remaining = remaining,
                         accent = accent,
                         onTap = onTap,
+                        onInvite = onInvite,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -206,6 +209,7 @@ fun BattleScreen(
                     isHost = isHost,
                     myUid = myUid,
                     myBestCombo = myBestCombo,
+                    onShare = onShareBattle,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -333,6 +337,7 @@ private fun SupporterControls(
     remaining: Long,
     accent: Color,
     onTap: (BattleAction) -> Int?,
+    onInvite: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val haptics = LocalHapticFeedback.current
@@ -374,7 +379,18 @@ private fun SupporterControls(
                 )
             }
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(14.dp))
+        Text(
+            text = "📣 Invite tes amis",
+            color = AuraPalette.TextMuted,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = androidx.compose.ui.Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onInvite)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        Spacer(Modifier.height(8.dp))
     }
 }
 
@@ -552,6 +568,7 @@ private fun BattleResults(
     isHost: Boolean,
     myUid: String?,
     myBestCombo: Int,
+    onShare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val mvp = supporters.firstOrNull()
@@ -599,6 +616,10 @@ private fun BattleResults(
                 color = AuraPalette.TextSecondary,
                 fontSize = 14.sp,
             )
+        }
+        if (!battle.isCancelled) {
+            Spacer(Modifier.height(14.dp))
+            GradientButton(text = "✨ Partager les résultats", onClick = onShare)
         }
         Spacer(Modifier.height(18.dp))
         SupportersList(supporters, myUid, Modifier.weight(1f))

@@ -39,6 +39,9 @@ import com.dubois.aura.ui.components.AuraHeader
 import com.dubois.aura.ui.components.AuraTabBar
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.colorFromHex
+import com.dubois.aura.ui.theme.toHex
+import com.dubois.aura.util.LocalShareBattle
+import com.dubois.aura.util.LocalInviteToBattle
 import com.dubois.aura.util.signed
 import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
@@ -254,6 +257,8 @@ fun MainScreen(
 
         // Battle ouverte (superposée par-dessus les onglets)
         currentBattle?.let { battle ->
+            val shareBattle = LocalShareBattle.current
+            val inviteToBattle = LocalInviteToBattle.current
             BattleScreen(
                 battle = battle,
                 host = (friends + listOfNotNull(me)).firstOrNull { it.profile.uid == battle.hostUid },
@@ -268,6 +273,17 @@ fun MainScreen(
                 onTap = battleViewModel::tap,
                 onBack = battleViewModel::close,
                 onCancel = battleViewModel::cancel,
+                onShareBattle = {
+                    shareBattle(
+                        battle.hostName,
+                        battle.score,
+                        battleSupporters.size,
+                        maxOf(battle.maxCombo, myBestCombo),
+                        battle.auraAwarded,
+                        battle.hostThemeColor,
+                    )
+                },
+                onInvite = { inviteToBattle(battle.hostName) },
             )
         }
 

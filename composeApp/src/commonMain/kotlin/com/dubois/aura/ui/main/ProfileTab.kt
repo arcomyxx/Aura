@@ -24,8 +24,11 @@ import com.dubois.aura.ui.components.AuraCard
 import com.dubois.aura.ui.components.AuraGauge
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
+import com.dubois.aura.ui.main.GradientButton
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.color
+import com.dubois.aura.ui.theme.toHex
+import com.dubois.aura.util.LocalShareProfile
 import com.dubois.aura.util.relativeTime
 import com.dubois.aura.util.signed
 import kotlin.time.Clock
@@ -40,6 +43,7 @@ fun ProfileTab(
     val tier = me?.tier
     val tierColor = tier?.color ?: AuraPalette.TierBase
     val now = Clock.System.now().toEpochMilliseconds()
+    val shareProfile = LocalShareProfile.current
 
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
@@ -73,6 +77,21 @@ fun ProfileTab(
                         fontWeight = FontWeight.Medium,
                     )
                 }
+            }
+            if (me != null) {
+                Spacer(Modifier.height(20.dp))
+                GradientButton(
+                    text = "✨ Partager mon aura",
+                    onClick = {
+                        shareProfile(
+                            me.profile.displayName,
+                            me.tier.displayName,
+                            me.profile.auraScore,
+                            me.rank,
+                            me.tier.color.toHex(),
+                        )
+                    },
+                )
             }
             Spacer(Modifier.height(28.dp))
             SectionLabel("Événements récents", Modifier.fillMaxWidth())

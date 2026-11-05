@@ -1,20 +1,78 @@
 package com.dubois.aura
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
+import com.dubois.aura.util.LocalInviteToBattle
+import com.dubois.aura.util.LocalShareBattle
+import com.dubois.aura.util.LocalShareProfile
+import com.dubois.aura.util.inviteToBattle
+import com.dubois.aura.util.shareBattleCard
+import com.dubois.aura.util.shareProfileCard
+import com.google.firebase.messaging.FirebaseMessaging
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
+import dev.gitlive.firebase.firestore.firestore
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        createNotificationChannel()
 
         setContent {
-            App()
+            CompositionLocalProvider(
+                LocalShareProfile provides { name, tierName, score, rank, tierHex ->
+                    shareProfileCard(this, name, tierName, score, rank, tierHex)
+                },
+                LocalShareBattle provides { hostName, battleScore, supporters, bestCombo, auraAwarded, accentHex ->
+                    shareBattleCard(this, hostName, battleScore, supporters, bestCombo, auraAwarded, accentHex)
+                },
+                LocalInviteToBattle provides { hostName ->
+                    inviteToBattle(this, hostName)
+                },
+            ) {
+                App()
+            }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerFcmToken()
+    }
+
+    private fun registerFcmToken() {
+        val uid = Firebase.auth.currentUser?.uid ?: return
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            lifecycleScope.launch {
+                runCatching {
+                    Firebase.firestore.collection("users").document(uid)
+                        .update(mapOf("fcmToken" to token))
+                }
+            }
+        }
+    }
+
+    private fun createNotificationChannel() {
+        val channel = NotificationChannel(
+            AuraMessagingService.CHANNEL_ID,
+            AuraMessagingService.CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            description = "Événements d'aura, battles, invitations."
+        }
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+            .createNotificationChannel(channel)
     }
 }
 
