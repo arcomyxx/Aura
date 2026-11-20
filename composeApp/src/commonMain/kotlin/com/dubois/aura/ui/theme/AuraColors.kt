@@ -15,17 +15,17 @@ import com.dubois.aura.model.AuraTier
  */
 object AuraPalette {
     // Fonds
-    val Background       = Color(0xFF0C0906)
-    val BackgroundGlow   = Color(0xFF2E1805) // halo orangé en haut de l'écran
-    val Surface          = Color(0xFF17120D) // cartes
-    val SurfaceElevated  = Color(0xFF211910) // cartes surlignées / champs
-    val CardBorder       = Color(0xFF33261A)
-    val TabTrack         = Color(0xFF14100B)
+    val Background       = Color(0xFF110A04)
+    val BackgroundGlow   = Color(0xFF3D1E06) // halo orangé en haut de l'écran
+    val Surface          = Color(0xFF1E1109) // cartes
+    val SurfaceElevated  = Color(0xFF2A1810) // cartes surlignées / champs
+    val CardBorder       = Color(0xFF4A2E18)
+    val TabTrack         = Color(0xFF1A0E07)
 
     // Marque — la couleur d'accent est choisie par l'utilisateur (thème perso).
     // C'est un état snapshot : toute lecture de Primary dans un composable se
     // recompose automatiquement quand l'accent change.
-    val DefaultAccent = Color(0xFFFFA31A)
+    val DefaultAccent = Color(0xFFFF8000)
 
     private var accent by mutableStateOf(DefaultAccent)
 
@@ -43,22 +43,22 @@ object AuraPalette {
     fun setAccent(color: Color?) { accent = color ?: DefaultAccent }
 
     // Texte
-    val TextPrimary   = Color(0xFFFBF4E8)
-    val TextSecondary = Color(0xFFAB9D8A)
-    val TextMuted     = Color(0xFF7A6D5D)
+    val TextPrimary   = Color(0xFFFFF0DC)
+    val TextSecondary = Color(0xFFBFA98C)
+    val TextMuted     = Color(0xFF8A7260)
 
     // Sémantique
-    val Positive = Color(0xFF4ADE80)
-    val Negative = Color(0xFFF26D6D)
+    val Positive = Color(0xFF5FE896)
+    val Negative = Color(0xFFFF5555)
 
     // Couleurs de tiers (score, anneaux d'avatar, jauge, aura animée) :
     // plus le niveau monte, plus l'aura vire du blanc vers l'orange incandescent.
-    val TierSupreme   = Color(0xFFFF5A1F) // rouge-orange incandescent
-    val TierDoree     = Color(0xFFFF8C0A) // orange
-    val TierVif       = Color(0xFFFFB31A) // or
-    val TierMontante  = Color(0xFFFFD43B) // jaune
-    val TierEtincelle = Color(0xFFFFE9A6) // jaune pâle
-    val TierBase      = Color(0xFFB5AA9A) // blanc-gris
+    val TierSupreme   = Color(0xFFFF3D00) // rouge-orangé brûlant
+    val TierDoree     = Color(0xFFFF7200) // orange vif
+    val TierVif       = Color(0xFFFFA500) // ambre
+    val TierMontante  = Color(0xFFFFCC00) // jaune doré
+    val TierEtincelle = Color(0xFFFFE599) // crème dorée
+    val TierBase      = Color(0xFFC4B49E) // sable chaud
 }
 
 /** Éclaircit/assombrit une couleur (facteur > 1 = plus clair). */

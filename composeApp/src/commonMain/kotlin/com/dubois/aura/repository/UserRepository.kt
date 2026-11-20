@@ -20,6 +20,7 @@ class UserRepository {
                 uid = uid,
                 displayName = name,
                 email = email,
+                auraScore = 100,
                 createdAt = Clock.System.now().toEpochMilliseconds(),
             )
 
