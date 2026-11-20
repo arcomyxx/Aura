@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 import com.dubois.aura.navigation.Screen
+import com.dubois.aura.ui.GroupOnboardingScreen
 import com.dubois.aura.ui.HomeScreen
 import com.dubois.aura.ui.LoginScreen
 import com.dubois.aura.ui.RegisterScreen
@@ -64,11 +65,28 @@ fun App() {
                 RegisterScreen(
                     viewModel = userViewModel,
                     onRegisterSuccess = {
-                        navController.navigate(Screen.Main.route) {
+                        navController.navigate(Screen.GroupOnboarding.route) {
                             popUpTo(Screen.Home.route)
                         }
                     },
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // ── Onboarding groupe (après inscription) ─────────────
+            composable(Screen.GroupOnboarding.route) {
+                GroupOnboardingScreen(
+                    onCreateGroup = { name ->
+                        mainViewModel.createGroup(name)
+                        navController.navigate(Screen.Main.route) {
+                            popUpTo(Screen.Home.route)
+                        }
+                    },
+                    onSkip = {
+                        navController.navigate(Screen.Main.route) {
+                            popUpTo(Screen.Home.route)
+                        }
+                    },
                 )
             }
 
