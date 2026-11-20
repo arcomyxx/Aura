@@ -259,6 +259,26 @@ class GroupRepository {
         }
     }
 
+    /**
+     * Applique [delta] au score de groupe de [targetUid] dans tous les groupes
+     * dont les deux utilisateurs sont membres. Appelé après un signalement global.
+     */
+    suspend fun applyDeltaInCommonGroups(myUid: String, targetUid: String, delta: Int) {
+        try {
+            val groups = firestore.collection("groups")
+                .where { "memberUids" contains myUid }
+                .get().documents
+                .map { it.data(Group.serializer()) }
+                .filter { targetUid in it.memberUids }
+            groups.forEach { group ->
+                try {
+                    membersCol(group.id).document(targetUid)
+                        .update(mapOf("groupAuraScore" to FieldValue.increment(delta)))
+                } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
+    }
+
     /** Événements récents du groupe (les plus récents d'abord). */
     suspend fun groupEvents(groupId: String, targetUid: String, limit: Int = 20): List<AuraEvent> {
         return try {

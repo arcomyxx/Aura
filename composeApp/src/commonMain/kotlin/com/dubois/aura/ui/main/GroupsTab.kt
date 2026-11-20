@@ -2,6 +2,7 @@ package com.dubois.aura.ui.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -379,12 +382,20 @@ fun GroupDetailScreen(
             } else if (leaderboard.isEmpty()) {
                 Text("Aucun membre pour l'instant.", color = AuraPalette.TextMuted, fontSize = 13.sp)
             } else {
+                val podium = leaderboard.take(3)
+                val rest = leaderboard.drop(3)
                 LazyColumn {
-                    items(leaderboard.size) { index ->
-                        val member = leaderboard[index]
+                    if (podium.isNotEmpty()) {
+                        item {
+                            GroupPodiumBlock(podium, myUid)
+                            Spacer(Modifier.height(14.dp))
+                        }
+                    }
+                    items(rest.size) { index ->
+                        val member = rest[index]
                         GroupMemberRow(
                             member = member,
-                            rank = index + 1,
+                            rank = podium.size + index + 1,
                             isMe = member.uid == myUid,
                             canReport = member.uid != myUid,
                             onReport = { reportTarget = member },
@@ -406,6 +417,70 @@ fun GroupDetailScreen(
                     reportTarget = null
                 },
             )
+        }
+    }
+}
+
+@Composable
+private fun GroupPodiumBlock(top: List<GroupMember>, myUid: String?) {
+    val order = when (top.size) {
+        1 -> listOf(top[0])
+        2 -> listOf(top[1], top[0])
+        else -> listOf(top[1], top[0], top[2])
+    }
+    val heights = when (top.size) {
+        1 -> listOf(80)
+        2 -> listOf(60, 80)
+        else -> listOf(60, 80, 50)
+    }
+    val medals = listOf("🥈", "🥇", "🥉")
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        order.forEachIndexed { i, member ->
+            val tierColor = member.tier.color
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                InitialsAvatar(
+                    name = member.displayName,
+                    ringColor = tierColor,
+                    size = if (i == 1) 56 else 44,
+                    photoBase64 = member.photoUrl,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = member.displayName.split(" ").first(),
+                    color = if (member.uid == myUid) AuraPalette.Primary else AuraPalette.TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                )
+                Text(
+                    text = member.groupAuraScore.grouped(),
+                    color = tierColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                )
+                Spacer(Modifier.height(6.dp))
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(heights[i].dp)
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(tierColor.copy(alpha = 0.5f), tierColor.copy(alpha = 0.15f))
+                            )
+                        ),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    Text(medals[i], fontSize = 20.sp, modifier = Modifier.padding(top = 8.dp))
+                }
+            }
         }
     }
 }

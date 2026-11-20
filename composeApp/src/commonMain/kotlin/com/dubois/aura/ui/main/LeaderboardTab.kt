@@ -1,5 +1,7 @@
 package com.dubois.aura.ui.main
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,10 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,16 +36,91 @@ fun LeaderboardTab(
     leaderboard: List<RankedUser>,
     modifier: Modifier = Modifier,
 ) {
+    val podium = leaderboard.take(3)
+    val rest = leaderboard.drop(3)
+
     LazyColumn(modifier = modifier.fillMaxWidth()) {
         item {
             SectionLabel("👑 Classement des amis")
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(16.dp))
         }
-        items(leaderboard, key = { it.profile.uid }) { user ->
+        if (podium.isNotEmpty()) {
+            item {
+                PodiumBlock(podium)
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+        items(rest, key = { it.profile.uid }) { user ->
             LeaderboardRow(user)
             Spacer(Modifier.height(10.dp))
         }
         item { Spacer(Modifier.height(24.dp)) }
+    }
+}
+
+@Composable
+private fun PodiumBlock(top: List<RankedUser>) {
+    val order = when (top.size) {
+        1 -> listOf(top[0])
+        2 -> listOf(top[1], top[0])
+        else -> listOf(top[1], top[0], top[2])
+    }
+    val heights = when (top.size) {
+        1 -> listOf(80)
+        2 -> listOf(60, 80)
+        else -> listOf(60, 80, 50)
+    }
+    val medals = listOf("🥈", "🥇", "🥉")
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        order.forEachIndexed { i, user ->
+            val tierColor = user.tier.color
+            val podiumHeight = heights[i].dp
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                InitialsAvatar(
+                    name = user.profile.displayName,
+                    ringColor = tierColor,
+                    size = if (i == 1) 56 else 44,
+                    auraScore = user.profile.auraScore,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = user.profile.displayName.split(" ").first(),
+                    color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                )
+                Text(
+                    text = user.profile.auraScore.grouped(),
+                    color = tierColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                )
+                Spacer(Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(podiumHeight)
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(tierColor.copy(alpha = 0.5f), tierColor.copy(alpha = 0.15f))
+                            )
+                        ),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    Text(medals[i], fontSize = 20.sp, modifier = Modifier.padding(top = 8.dp))
+                }
+            }
+        }
     }
 }
 

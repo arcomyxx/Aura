@@ -262,6 +262,11 @@ class MainViewModel : ViewModel() {
                 .onSuccess {
                     _message.value = "${type.label} signalé pour ${target.displayName}"
                     _dailyLimits.value = eventRepo.myDailyLimits()
+                    // Propage le delta dans tous les groupes communs.
+                    val uid = myUid
+                    if (uid != null) {
+                        groupRepo.applyDeltaInCommonGroups(uid, target.uid, type.delta)
+                    }
                     load()
                 }
                 .onFailure { _message.value = it.message }
