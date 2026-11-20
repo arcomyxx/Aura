@@ -57,6 +57,7 @@ fun GroupsTab(
     groups: List<Group>,
     groupInvites: List<GroupInvite>,
     myUid: String?,
+    leaderboard: List<com.dubois.aura.model.RankedUser>,
     onCreateGroup: (String) -> Unit,
     onAcceptInvite: (GroupInvite) -> Unit,
     onDeclineInvite: (GroupInvite) -> Unit,
@@ -162,6 +163,37 @@ fun GroupsTab(
             }
             items(groups, key = { it.id }) { group ->
                 GroupRow(group = group, myUid = myUid, onClick = { onOpenGroup(group) })
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+
+        // Classement global en section secondaire
+        if (leaderboard.isNotEmpty()) {
+            item {
+                Spacer(Modifier.height(16.dp))
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(AuraPalette.CardBorder)
+                )
+                Spacer(Modifier.height(16.dp))
+                SectionLabel("🌍 Classement général", modifier = Modifier)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Score global tous groupes confondus",
+                    color = AuraPalette.TextMuted,
+                    fontSize = 11.sp,
+                )
+                Spacer(Modifier.height(12.dp))
+                val podium = leaderboard.take(3)
+                if (podium.isNotEmpty()) {
+                    GlobalPodiumBlock(podium)
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+            items(leaderboard.drop(3), key = { "global_${it.profile.uid}" }) { user ->
+                GlobalLeaderboardRow(user)
                 Spacer(Modifier.height(8.dp))
             }
         }
@@ -417,6 +449,68 @@ fun GroupDetailScreen(
                     reportTarget = null
                 },
             )
+        }
+    }
+}
+
+@Composable
+private fun GlobalPodiumBlock(top: List<com.dubois.aura.model.RankedUser>) {
+    val order = when (top.size) {
+        1 -> listOf(top[0])
+        2 -> listOf(top[1], top[0])
+        else -> listOf(top[1], top[0], top[2])
+    }
+    val heights = when (top.size) { 1 -> listOf(60); 2 -> listOf(44, 60); else -> listOf(44, 60, 36) }
+    val medals = listOf("🥈", "🥇", "🥉")
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        order.forEachIndexed { i, user ->
+            val tierColor = user.tier.color
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                InitialsAvatar(name = user.profile.displayName, ringColor = tierColor, size = if (i == 1) 48 else 38, auraScore = user.profile.auraScore)
+                Spacer(Modifier.height(4.dp))
+                Text(user.profile.displayName.split(" ").first(), color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, maxLines = 1)
+                Text(user.profile.auraScore.grouped(), color = tierColor, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                Spacer(Modifier.height(4.dp))
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier.fillMaxWidth().height(heights[i].dp).clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(tierColor.copy(alpha = 0.4f), tierColor.copy(alpha = 0.1f)))),
+                    contentAlignment = Alignment.TopCenter,
+                ) { Text(medals[i], fontSize = 16.sp, modifier = Modifier.padding(top = 6.dp)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GlobalLeaderboardRow(user: com.dubois.aura.model.RankedUser) {
+    val tierColor = user.tier.color
+    val medal = when (user.rank) { 1 -> "🥇"; 2 -> "🥈"; 3 -> "🥉"; else -> null }
+    AuraCard(Modifier.fillMaxWidth(), highlighted = user.isMe) {
+        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.width(26.dp), contentAlignment = Alignment.Center) {
+                if (medal != null) Text(medal, fontSize = 16.sp)
+                else Text("#${user.rank}", color = AuraPalette.TextMuted, fontSize = 12.sp)
+            }
+            Spacer(Modifier.width(8.dp))
+            InitialsAvatar(name = user.profile.displayName, ringColor = tierColor, size = 36, auraScore = user.profile.auraScore)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = user.profile.displayName.ifBlank { "(sans nom)" } + if (user.isMe) " (toi)" else "",
+                    color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp,
+                )
+                Text(user.tier.displayName, color = AuraPalette.TextSecondary, fontSize = 11.sp)
+            }
+            Text(user.profile.auraScore.grouped(), color = tierColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
     }
 }

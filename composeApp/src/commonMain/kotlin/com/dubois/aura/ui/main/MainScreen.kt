@@ -3,6 +3,8 @@ package com.dubois.aura.ui.main
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -47,7 +49,7 @@ import com.dubois.aura.util.signed
 import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
 
-private val TABS = listOf("Profil", "Amis", "Battle", "Classement", "Groupes")
+private val TABS = listOf("Profil", "Groupes", "Battle", "Amis")
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -179,18 +181,15 @@ fun MainScreen(
                     weeklyDelta = weeklyDelta,
                     modifier = Modifier.weight(1f),
                 )
-                1 -> FriendsTab(
-                    friends = friends,
-                    searchResults = searchResults,
-                    requests = requests,
-                    searching = searching,
-                    onSearch = viewModel::search,
-                    onClearSearch = viewModel::clearSearch,
-                    onSendRequest = viewModel::sendRequest,
-                    onAccept = viewModel::accept,
-                    onDecline = viewModel::decline,
-                    onReport = { openSheet(it) },
-                    onOpenProfile = { viewModel.openFriend(it) },
+                1 -> GroupsTab(
+                    groups = groups,
+                    groupInvites = groupInvites,
+                    myUid = viewModel.myUid,
+                    leaderboard = leaderboard,
+                    onCreateGroup = viewModel::createGroup,
+                    onAcceptInvite = viewModel::acceptGroupInvite,
+                    onDeclineInvite = viewModel::declineGroupInvite,
+                    onOpenGroup = viewModel::openGroup,
                     modifier = Modifier.weight(1f),
                 )
                 2 -> {
@@ -211,18 +210,18 @@ fun MainScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                3 -> LeaderboardTab(
-                    leaderboard = leaderboard,
-                    modifier = Modifier.weight(1f),
-                )
-                else -> GroupsTab(
-                    groups = groups,
-                    groupInvites = groupInvites,
-                    myUid = viewModel.myUid,
-                    onCreateGroup = viewModel::createGroup,
-                    onAcceptInvite = viewModel::acceptGroupInvite,
-                    onDeclineInvite = viewModel::declineGroupInvite,
-                    onOpenGroup = viewModel::openGroup,
+                else -> FriendsTab(
+                    friends = friends,
+                    searchResults = searchResults,
+                    requests = requests,
+                    searching = searching,
+                    onSearch = viewModel::search,
+                    onClearSearch = viewModel::clearSearch,
+                    onSendRequest = viewModel::sendRequest,
+                    onAccept = viewModel::accept,
+                    onDecline = viewModel::decline,
+                    onReport = { openSheet(it) },
+                    onOpenProfile = { viewModel.openFriend(it) },
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -230,6 +229,35 @@ fun MainScreen(
             Spacer(Modifier.height(12.dp))
             AuraTabBar(tabs = TABS, selected = selectedTab, onSelect = { selectedTab = it })
             Spacer(Modifier.height(8.dp))
+        }
+
+        // Bouton flottant "Signaler" — visible depuis tous les onglets
+        if (currentBattle == null && selectedFriend == null && selectedGroup == null) {
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .safeContentPadding()
+                    .padding(bottom = 72.dp),
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(28.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(AuraPalette.PrimaryGradientStart, AuraPalette.PrimaryGradientEnd)
+                            )
+                        )
+                        .clickable { openSheet(null) }
+                        .padding(horizontal = 22.dp, vertical = 12.dp),
+                ) {
+                    Text(
+                        "⚡ Signaler",
+                        color = AuraPalette.OnPrimary,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        fontSize = 15.sp,
+                    )
+                }
+            }
         }
 
         if (showSheet) {
