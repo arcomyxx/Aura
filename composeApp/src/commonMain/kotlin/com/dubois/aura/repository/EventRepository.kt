@@ -54,6 +54,13 @@ class EventRepository {
         return "$year-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}"
     }
 
+    suspend fun myDailyLimits(): DailyLimits {
+        val uid = myUid() ?: return DailyLimits()
+        val limits = loadDailyLimits(uid)
+        val todayStr = today()
+        return if (limits.date != todayStr) DailyLimits(date = todayStr) else limits
+    }
+
     private suspend fun loadDailyLimits(uid: String): DailyLimits {
         return try {
             val doc = firestore.collection("users").document(uid)

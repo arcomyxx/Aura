@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import com.dubois.aura.model.AuraEvent
+import com.dubois.aura.model.DailyLimits
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.ui.components.AuraHeader
 import com.dubois.aura.ui.components.AuraTabBar
@@ -64,6 +65,7 @@ fun MainScreen(
     val requests by viewModel.requests.collectAsState()
     val searching by viewModel.searching.collectAsState()
     val message by viewModel.message.collectAsState()
+    val dailyLimits by viewModel.dailyLimits.collectAsState()
     val selectedFriend by viewModel.selectedFriend.collectAsState()
     val friendEvents by viewModel.friendEvents.collectAsState()
 
@@ -239,6 +241,7 @@ fun MainScreen(
                 ReportEventSheetContent(
                     initialTarget = reportTarget,
                     friends = friends,
+                    dailyLimits = dailyLimits,
                     onDismiss = { showSheet = false },
                     onSubmit = { target, type, description ->
                         viewModel.report(target, type, description)

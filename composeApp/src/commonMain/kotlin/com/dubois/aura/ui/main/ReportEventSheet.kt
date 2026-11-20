@@ -40,7 +40,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dubois.aura.model.DailyLimits
 import com.dubois.aura.model.EventCatalog
+import com.dubois.aura.model.EventRarity
 import com.dubois.aura.model.EventType
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.model.UserProfile
@@ -56,16 +58,23 @@ import com.dubois.aura.util.signed
  * Contenu de la feuille « Signaler un événement ». Si [initialTarget] est nul
  * (ouverture depuis « + Signaler »), l'utilisateur choisit d'abord un ami.
  */
+private const val MAX_POS = 3
+private const val MAX_NEG = 1
+
 @Composable
 fun ReportEventSheetContent(
     initialTarget: RankedUser?,
     friends: List<RankedUser>,
+    dailyLimits: DailyLimits = DailyLimits(),
     onDismiss: () -> Unit,
     onSubmit: (target: UserProfile, type: EventType, description: String) -> Unit,
 ) {
     var target by remember { mutableStateOf(initialTarget) }
     var selectedType by remember { mutableStateOf<EventType?>(null) }
     var description by remember { mutableStateOf("") }
+
+    val posRemaining = (MAX_POS - dailyLimits.positivesSent).coerceAtLeast(0)
+    val negRemaining = (MAX_NEG - dailyLimits.negativesSent).coerceAtLeast(0)
 
     Column(
         modifier = Modifier
@@ -92,6 +101,39 @@ fun ReportEventSheetContent(
                 )
             }
             CloseButton(onDismiss)
+        }
+        Spacer(Modifier.height(14.dp))
+
+        // Bandeau de quotas journaliers
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(AuraPalette.SurfaceElevated)
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            QuotaBadge(
+                label = "Positifs restants",
+                remaining = posRemaining,
+                total = MAX_POS,
+                color = AuraPalette.Positive,
+                modifier = Modifier.weight(1f),
+            )
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(32.dp)
+                    .background(AuraPalette.CardBorder)
+            )
+            QuotaBadge(
+                label = "Négatif restant",
+                remaining = negRemaining,
+                total = MAX_NEG,
+                color = AuraPalette.Negative,
+                modifier = Modifier.weight(1f),
+            )
         }
         Spacer(Modifier.height(20.dp))
 
@@ -126,10 +168,12 @@ fun ReportEventSheetContent(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 rowItems.forEach { type ->
+                    val exhausted = if (type.isPositive) posRemaining == 0 else negRemaining == 0
                     EventTypeCard(
                         type = type,
                         selected = selectedType?.id == type.id,
-                        onClick = { selectedType = type },
+                        exhausted = exhausted,
+                        onClick = { if (!exhausted) selectedType = type },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
@@ -220,30 +264,86 @@ internal fun EventTypeCard(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    exhausted: Boolean = false,
 ) {
-    val border = if (selected) AuraPalette.Primary else AuraPalette.CardBorder
+    val border = when {
+        exhausted -> AuraPalette.CardBorder
+        selected  -> AuraPalette.Primary
+        else      -> AuraPalette.CardBorder
+    }
+    val bgColor = when {
+        exhausted -> AuraPalette.Surface
+        selected  -> AuraPalette.SurfaceElevated
+        else      -> AuraPalette.Surface
+    }
+    val alpha = if (exhausted) 0.4f else 1f
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(if (selected) AuraPalette.SurfaceElevated else AuraPalette.Surface)
-            .border(BorderStroke(if (selected) 1.5.dp else 1.dp, border), RoundedCornerShape(16.dp))
+            .background(bgColor)
+            .border(BorderStroke(if (selected && !exhausted) 1.5.dp else 1.dp, border), RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(14.dp),
     ) {
-        Text(type.emoji, fontSize = 20.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(type.emoji, fontSize = 20.sp)
+            RarityBadge(type.rarity, exhausted)
+        }
         Spacer(Modifier.height(10.dp))
         Text(
             type.label,
-            color = AuraPalette.TextPrimary,
+            color = AuraPalette.TextPrimary.copy(alpha = alpha),
             fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp,
         )
         Spacer(Modifier.height(4.dp))
         Text(
             "${type.delta.signed()} aura",
-            color = if (type.isPositive) AuraPalette.Positive else AuraPalette.Negative,
+            color = (if (type.isPositive) AuraPalette.Positive else AuraPalette.Negative).copy(alpha = alpha),
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
+        )
+    }
+}
+
+@Composable
+private fun RarityBadge(rarity: EventRarity, exhausted: Boolean) {
+    val (label, color) = when (rarity) {
+        EventRarity.LEGENDARY -> "✦ Légendaire" to AuraPalette.TierDoree
+        EventRarity.RARE      -> "◆ Rare"       to AuraPalette.TierMontante
+        EventRarity.COMMON    -> return
+    }
+    Text(
+        text = if (exhausted) "✕" else label,
+        color = if (exhausted) AuraPalette.TextMuted else color,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
+    )
+}
+
+@Composable
+private fun QuotaBadge(
+    label: String,
+    remaining: Int,
+    total: Int,
+    color: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "$remaining / $total",
+            color = if (remaining > 0) color else AuraPalette.TextMuted,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+        )
+        Text(
+            text = label,
+            color = AuraPalette.TextMuted,
+            fontSize = 11.sp,
         )
     }
 }

@@ -3,12 +3,17 @@ package com.dubois.aura.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dubois.aura.model.AuraEvent
+import com.dubois.aura.model.DailyLimits
 import com.dubois.aura.model.EventType
 import com.dubois.aura.model.FriendRequest
+import com.dubois.aura.model.Group
+import com.dubois.aura.model.GroupInvite
+import com.dubois.aura.model.GroupMember
 import com.dubois.aura.model.RankedUser
 import com.dubois.aura.model.UserProfile
 import com.dubois.aura.repository.EventRepository
 import com.dubois.aura.repository.FriendRepository
+import com.dubois.aura.repository.GroupRepository
 import com.dubois.aura.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +30,7 @@ class MainViewModel : ViewModel() {
     private val userRepo = UserRepository()
     private val friendRepo = FriendRepository()
     private val eventRepo = EventRepository()
+    private val groupRepo = GroupRepository()
 
     private val _me = MutableStateFlow<RankedUser?>(null)
     val me: StateFlow<RankedUser?> = _me
@@ -70,6 +76,27 @@ class MainViewModel : ViewModel() {
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message
 
+    // ── Groupes ───────────────────────────────────────────────────────
+    private val _groups = MutableStateFlow<List<Group>>(emptyList())
+    val groups: StateFlow<List<Group>> = _groups
+
+    private val _groupInvites = MutableStateFlow<List<GroupInvite>>(emptyList())
+    val groupInvites: StateFlow<List<GroupInvite>> = _groupInvites
+
+    /** Groupe dont on consulte le classement (null = liste des groupes). */
+    private val _selectedGroup = MutableStateFlow<Group?>(null)
+    val selectedGroup: StateFlow<Group?> = _selectedGroup
+
+    /** Classement des membres du groupe sélectionné (scores propres au groupe). */
+    private val _groupLeaderboard = MutableStateFlow<List<GroupMember>>(emptyList())
+    val groupLeaderboard: StateFlow<List<GroupMember>> = _groupLeaderboard
+
+    private val _groupLoading = MutableStateFlow(false)
+    val groupLoading: StateFlow<Boolean> = _groupLoading
+
+    private val _dailyLimits = MutableStateFlow(DailyLimits())
+    val dailyLimits: StateFlow<DailyLimits> = _dailyLimits
+
     fun load() {
         viewModelScope.launch {
             _loading.value = true
@@ -97,6 +124,10 @@ class MainViewModel : ViewModel() {
             // Demandes d'ami reçues.
             _requests.value = friendRepo.incomingRequests()
 
+            // Groupes & invitations.
+            groupRepo.myGroups().onSuccess { _groups.value = it }
+            groupRepo.incomingInvites().onSuccess { _groupInvites.value = it }
+
             // Événements reçus + delta hebdo.
             if (myUid != null) {
                 val recent = eventRepo.recentEvents(myUid)
@@ -104,6 +135,8 @@ class MainViewModel : ViewModel() {
                 val weekAgo = Clock.System.now().toEpochMilliseconds() - 7L * 24 * 60 * 60 * 1000
                 _weeklyDelta.value = recent.filter { it.createdAt >= weekAgo }.sumOf { it.delta }
             }
+
+            _dailyLimits.value = eventRepo.myDailyLimits()
             _loading.value = false
         }
     }
@@ -228,6 +261,7 @@ class MainViewModel : ViewModel() {
             eventRepo.reportEvent(target.uid, type, description)
                 .onSuccess {
                     _message.value = "${type.label} signalé pour ${target.displayName}"
+                    _dailyLimits.value = eventRepo.myDailyLimits()
                     load()
                 }
                 .onFailure { _message.value = it.message }
@@ -238,4 +272,113 @@ class MainViewModel : ViewModel() {
     fun showMessage(text: String) { _message.value = text }
 
     fun clearMessage() { _message.value = null }
+
+    // ── Groupes ───────────────────────────────────────────────────────
+
+    fun createGroup(name: String) {
+        viewModelScope.launch {
+            groupRepo.createGroup(name)
+                .onSuccess {
+                    _message.value = "Groupe « ${it.name} » créé !"
+                    groupRepo.myGroups().onSuccess { list -> _groups.value = list }
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun inviteToGroup(group: Group, target: UserProfile) {
+        viewModelScope.launch {
+            groupRepo.inviteToGroup(group, target)
+                .onSuccess { _message.value = "${target.displayName.ifBlank { target.email }} invité dans ${group.name}" }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun acceptGroupInvite(invite: GroupInvite) {
+        viewModelScope.launch {
+            groupRepo.acceptInvite(invite)
+                .onSuccess {
+                    _message.value = "Vous avez rejoint « ${invite.groupName} »"
+                    _groupInvites.value = _groupInvites.value.filterNot { it.id == invite.id }
+                    groupRepo.myGroups().onSuccess { list -> _groups.value = list }
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun declineGroupInvite(invite: GroupInvite) {
+        viewModelScope.launch {
+            groupRepo.declineInvite(invite)
+                .onSuccess { _groupInvites.value = _groupInvites.value.filterNot { it.id == invite.id } }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun leaveGroup(group: Group) {
+        viewModelScope.launch {
+            groupRepo.leaveGroup(group)
+                .onSuccess {
+                    _message.value = "Vous avez quitté « ${group.name} »"
+                    _groups.value = _groups.value.filterNot { it.id == group.id }
+                    if (_selectedGroup.value?.id == group.id) _selectedGroup.value = null
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun deleteGroup(group: Group) {
+        viewModelScope.launch {
+            groupRepo.deleteGroup(group)
+                .onSuccess {
+                    _message.value = "Groupe « ${group.name} » supprimé"
+                    _groups.value = _groups.value.filterNot { it.id == group.id }
+                    if (_selectedGroup.value?.id == group.id) _selectedGroup.value = null
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun openGroup(group: Group) {
+        _selectedGroup.value = group
+        _groupLeaderboard.value = emptyList()
+        _groupLoading.value = true
+        viewModelScope.launch {
+            groupRepo.groupLeaderboard(group.id)
+                .onSuccess { members ->
+                    if (members.isEmpty() && group.memberUids.isNotEmpty()) {
+                        // Anciens groupes sans docs membres : on les crée à la volée.
+                        groupRepo.initMissingMembers(group)
+                        groupRepo.groupLeaderboard(group.id)
+                            .onSuccess { _groupLeaderboard.value = it }
+                            .onFailure { _groupLeaderboard.value = emptyList() }
+                    } else {
+                        _groupLeaderboard.value = members
+                    }
+                }
+                .onFailure {
+                    _message.value = it.message
+                    _groupLeaderboard.value = emptyList()
+                }
+            _groupLoading.value = false
+        }
+    }
+
+    fun reportGroupEvent(groupId: String, targetUid: String, type: EventType, description: String) {
+        viewModelScope.launch {
+            groupRepo.reportGroupEvent(groupId, targetUid, type, description)
+                .onSuccess {
+                    _message.value = "${type.label} signalé dans le groupe"
+                    // Recharge le classement du groupe.
+                    groupRepo.groupLeaderboard(groupId)
+                        .onSuccess { _groupLeaderboard.value = it }
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun closeGroup() {
+        _selectedGroup.value = null
+        _groupLeaderboard.value = emptyList()
+        _groupLoading.value = false
+    }
 }
