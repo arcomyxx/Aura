@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -300,7 +301,12 @@ fun GroupDetailScreen(
             .background(AuraPalette.Background)
             .blockTouchesBehind()
     ) {
-        Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .safeContentPadding()
+                .padding(horizontal = 20.dp)
+        ) {
             // En-tête
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
