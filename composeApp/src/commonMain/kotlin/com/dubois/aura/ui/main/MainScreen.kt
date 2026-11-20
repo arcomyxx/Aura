@@ -46,7 +46,7 @@ import com.dubois.aura.util.signed
 import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
 
-private val TABS = listOf("Profil", "Amis", "Battle", "Classement")
+private val TABS = listOf("Profil", "Amis", "Battle", "Classement", "Groupes")
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -66,6 +66,12 @@ fun MainScreen(
     val message by viewModel.message.collectAsState()
     val selectedFriend by viewModel.selectedFriend.collectAsState()
     val friendEvents by viewModel.friendEvents.collectAsState()
+
+    val groups by viewModel.groups.collectAsState()
+    val groupInvites by viewModel.groupInvites.collectAsState()
+    val selectedGroup by viewModel.selectedGroup.collectAsState()
+    val groupLeaderboard by viewModel.groupLeaderboard.collectAsState()
+    val groupLoading by viewModel.groupLoading.collectAsState()
 
     val liveBattles by battleViewModel.liveBattles.collectAsState()
     val battleHistory by battleViewModel.history.collectAsState()
@@ -119,8 +125,12 @@ fun MainScreen(
 
     // Geste / bouton « retour » du système : ferme la battle ou le profil
     // d'ami affiché par-dessus les onglets au lieu de quitter l'application.
-    BackHandler(enabled = currentBattle != null || selectedFriend != null) {
-        if (currentBattle != null) battleViewModel.close() else viewModel.closeFriend()
+    BackHandler(enabled = currentBattle != null || selectedFriend != null || selectedGroup != null) {
+        when {
+            currentBattle != null -> battleViewModel.close()
+            selectedFriend != null -> viewModel.closeFriend()
+            else -> viewModel.closeGroup()
+        }
     }
 
     // Applique la couleur d'accent choisie par l'utilisateur à tout le thème.
@@ -159,8 +169,6 @@ fun MainScreen(
                 onLogout = onLogout,
             )
             Spacer(Modifier.height(18.dp))
-            AuraTabBar(tabs = TABS, selected = selectedTab, onSelect = { selectedTab = it })
-            Spacer(Modifier.height(20.dp))
 
             when (selectedTab) {
                 0 -> ProfileTab(
@@ -201,11 +209,25 @@ fun MainScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                else -> LeaderboardTab(
+                3 -> LeaderboardTab(
                     leaderboard = leaderboard,
                     modifier = Modifier.weight(1f),
                 )
+                else -> GroupsTab(
+                    groups = groups,
+                    groupInvites = groupInvites,
+                    myUid = viewModel.myUid,
+                    onCreateGroup = viewModel::createGroup,
+                    onAcceptInvite = viewModel::acceptGroupInvite,
+                    onDeclineInvite = viewModel::declineGroupInvite,
+                    onOpenGroup = viewModel::openGroup,
+                    modifier = Modifier.weight(1f),
+                )
             }
+
+            Spacer(Modifier.height(12.dp))
+            AuraTabBar(tabs = TABS, selected = selectedTab, onSelect = { selectedTab = it })
+            Spacer(Modifier.height(8.dp))
         }
 
         if (showSheet) {
@@ -252,6 +274,24 @@ fun MainScreen(
                 onBack = { viewModel.closeFriend() },
                 onEditEvent = { editingEvent = it },
                 onDeleteEvent = { viewModel.deleteEvent(it) },
+            )
+        }
+
+        // Groupe sélectionné (superposé par-dessus les onglets)
+        selectedGroup?.let { group ->
+            GroupDetailScreen(
+                group = group,
+                leaderboard = groupLeaderboard,
+                loading = groupLoading,
+                friends = friends,
+                myUid = viewModel.myUid,
+                onBack = { viewModel.closeGroup() },
+                onInvite = { target -> viewModel.inviteToGroup(group, target) },
+                onReport = { member, type, description ->
+                    viewModel.reportGroupEvent(group.id, member.uid, type, description)
+                },
+                onLeave = { viewModel.leaveGroup(group) },
+                onDelete = { viewModel.deleteGroup(group) },
             )
         }
 
