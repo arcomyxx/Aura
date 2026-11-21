@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -50,9 +49,6 @@ actual fun GoogleSignInButton(onIdToken: (String) -> Unit) {
         modifier = Modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(26.dp),
         border = BorderStroke(1.dp, AuraPalette.CardBorder),
-        colors = OutlinedButtonDefaults.outlinedButtonColors(
-            contentColor = AuraPalette.TextPrimary,
-        ),
     ) {
         Text("G  Continuer avec Google", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
     }
