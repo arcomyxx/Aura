@@ -84,15 +84,27 @@ fun ProfileTab(
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {
-                        val r = size.width * 0.72f
+                        // Halo extérieur large et doux
+                        val rOuter = size.width * 0.90f
                         drawCircle(
                             brush = Brush.radialGradient(
-                                0.0f to tierColor.copy(alpha = 0.28f),
-                                0.55f to tierColor.copy(alpha = 0.10f),
+                                0.0f to tierColor.copy(alpha = 0.22f),
+                                0.50f to tierColor.copy(alpha = 0.08f),
                                 1.0f to Color.Transparent,
-                                radius = r,
+                                radius = rOuter,
                             ),
-                            radius = r,
+                            radius = rOuter,
+                        )
+                        // Halo intérieur plus intense
+                        val rInner = size.width * 0.52f
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                0.0f to tierColor.copy(alpha = 0.55f),
+                                0.45f to tierColor.copy(alpha = 0.22f),
+                                1.0f to Color.Transparent,
+                                radius = rInner,
+                            ),
+                            radius = rInner,
                         )
                     },
             ) {
