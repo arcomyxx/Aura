@@ -167,9 +167,13 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .safeContentPadding()
-                .padding(horizontal = 20.dp),
+                .safeContentPadding(),
         ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 20.dp),
+            ) {
             AuraHeader(
                 displayName = me?.profile?.displayName ?: "",
                 photoBase64 = me?.profile?.photoUrl ?: "",
@@ -230,6 +234,8 @@ fun MainScreen(
                     modifier = Modifier.weight(1f),
                 )
             }
+
+            } // fin Column avec padding horizontal
 
             AuraBottomNav(
                 tabs = TABS,
