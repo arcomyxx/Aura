@@ -74,6 +74,7 @@ fun AuraGauge(
                     .then(if (flame) Modifier.auraFlame(score) else Modifier),
                 contentAlignment = Alignment.Center,
             ) {
+                Box(modifier = Modifier.offset(y = (diameter * 0.08f).dp)) {
                 InitialsAvatar(
                     name = name,
                     ringColor = tierColor,
@@ -122,6 +123,7 @@ fun AuraGauge(
                         )
                     }
                 }
+                } // end offset Box
             }
             Spacer(Modifier.height(6.dp))
             Text(
