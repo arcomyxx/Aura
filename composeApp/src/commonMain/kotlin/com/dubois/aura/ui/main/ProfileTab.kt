@@ -144,23 +144,15 @@ fun ProfileTab(
                     Text("?", color = AuraPalette.TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Spacer(Modifier.height(6.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            if (weeklyDelta != 0) {
+                Spacer(Modifier.height(6.dp))
+                val positive = weeklyDelta >= 0
                 Text(
-                    text = "Rang #${me?.rank ?: "—"}",
-                    color = AuraPalette.TextSecondary,
+                    text = "${if (positive) "↗" else "↘"} ${weeklyDelta.signed()} cette semaine",
+                    color = if (positive) AuraPalette.Positive else AuraPalette.Negative,
                     fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
                 )
-                if (weeklyDelta != 0) {
-                    Spacer(Modifier.width(12.dp))
-                    val positive = weeklyDelta >= 0
-                    Text(
-                        text = "${if (positive) "↗" else "↘"} ${weeklyDelta.signed()} cette semaine",
-                        color = if (positive) AuraPalette.Positive else AuraPalette.Negative,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
             }
             if (me != null) {
                 Spacer(Modifier.height(20.dp))
