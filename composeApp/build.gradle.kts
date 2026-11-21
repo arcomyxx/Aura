@@ -46,6 +46,7 @@ kotlin {
 
             implementation(project.dependencies.platform("com.google.firebase:firebase-bom:32.7.0"))
             implementation("com.google.firebase:firebase-messaging")
+            implementation("com.google.android.gms:play-services-auth:21.2.0")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

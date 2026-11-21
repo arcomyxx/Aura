@@ -2,6 +2,7 @@ package com.dubois.aura.repository
 
 import com.dubois.aura.model.UserProfile
 import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.GoogleAuthProvider
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import kotlin.time.Clock
@@ -94,6 +95,33 @@ class UserRepository {
             .map { it.data(UserProfile.serializer()) }
             .filter { it.uid.isNotEmpty() }
             .sortedByDescending { it.auraScore }
+    }
+
+    /** Connexion via Google Sign-In ; crée le profil Firestore si c'est la première fois. */
+    suspend fun loginWithGoogle(idToken: String): Result<UserProfile> {
+        return try {
+            val credential = GoogleAuthProvider.credential(idToken, null)
+            val result = auth.signInWithCredential(credential)
+            val user = result.user!!
+            val uid = user.uid
+            val docRef = firestore.collection("users").document(uid)
+            val doc = docRef.get()
+            if (!doc.exists) {
+                val profile = UserProfile(
+                    uid = uid,
+                    displayName = user.displayName ?: "",
+                    email = user.email ?: "",
+                    auraScore = 100,
+                    createdAt = Clock.System.now().toEpochMilliseconds(),
+                )
+                docRef.set(UserProfile.serializer(), profile)
+                Result.success(profile)
+            } else {
+                Result.success(doc.data(UserProfile.serializer()))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun logout() = auth.signOut()

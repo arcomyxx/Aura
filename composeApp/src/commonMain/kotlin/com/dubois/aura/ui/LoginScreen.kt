@@ -61,5 +61,7 @@ fun LoginScreen(
         }
         Spacer(Modifier.height(24.dp))
         GradientButton(text = "Se connecter", onClick = { viewModel.login(email, password) })
+        Spacer(Modifier.height(12.dp))
+        GoogleSignInButton(onIdToken = { viewModel.loginWithGoogle(it) })
     }
 }

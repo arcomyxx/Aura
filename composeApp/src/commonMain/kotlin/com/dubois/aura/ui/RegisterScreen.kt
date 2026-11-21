@@ -63,5 +63,7 @@ fun RegisterScreen(
         }
         Spacer(Modifier.height(24.dp))
         GradientButton(text = "S'inscrire", onClick = { viewModel.register(email, password, name) })
+        Spacer(Modifier.height(12.dp))
+        GoogleSignInButton(onIdToken = { viewModel.loginWithGoogle(it) })
     }
 }

@@ -34,6 +34,14 @@ class UserViewModel : ViewModel() {
         }
     }
 
+    fun loginWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            repo.loginWithGoogle(idToken)
+                .onSuccess { _profile.value = it }
+                .onFailure { _error.value = it.message }
+        }
+    }
+
     fun updateProfile(
         name: String,
         bio: String,

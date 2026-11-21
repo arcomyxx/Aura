@@ -12,7 +12,20 @@
           "package_name": "com.dubois.aura"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "962323891392-6dc08dp85hlh3gad3fcqvigusiv0raun.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dubois.aura",
+            "certificate_hash": "e070df269c4c4a967e192e3d37fa0131e71d5f01"
+          }
+        },
+        {
+          "client_id": "962323891392-c93s4oquc5mbnd2k19i0kujq90i46t4u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD5tC_F0zcR_juRXmoDQKFZrfd5-DiXaRg"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "962323891392-c93s4oquc5mbnd2k19i0kujq90i46t4u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "962323891392-44i3rpe6loih6rdll128tfjk4v0shdqt.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dubois.aura"
+              }
+            }
+          ]
         }
       }
     }
