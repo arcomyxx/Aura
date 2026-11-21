@@ -1,6 +1,7 @@
 package com.dubois.aura.ui.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,7 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dubois.aura.model.RankedUser
@@ -60,64 +66,108 @@ fun LeaderboardTab(
 
 @Composable
 private fun PodiumBlock(top: List<RankedUser>) {
-    val order = when (top.size) {
-        1 -> listOf(top[0])
-        2 -> listOf(top[1], top[0])
+    // Disposition : 2e à gauche, 1er au centre, 3e à droite
+    val slots: List<RankedUser?> = when (top.size) {
+        1 -> listOf(null, top[0], null)
+        2 -> listOf(top[1], top[0], null)
         else -> listOf(top[1], top[0], top[2])
     }
-    val heights = when (top.size) {
-        1 -> listOf(80)
-        2 -> listOf(60, 80)
-        else -> listOf(60, 80, 50)
-    }
-    val medals = listOf("🥈", "🥇", "🥉")
+    val blockHeights = listOf(90, 130, 70)   // hauteurs 2e / 1er / 3e
+    val ranks = listOf(2, 1, 3)
+    val avatarSizes = listOf(48, 60, 44)
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
-        order.forEachIndexed { i, user ->
-            val tierColor = user.tier.color
-            val podiumHeight = heights[i].dp
+        slots.forEachIndexed { i, user ->
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom,
             ) {
-                InitialsAvatar(
-                    name = user.profile.displayName,
-                    ringColor = tierColor,
-                    size = if (i == 1) 56 else 44,
-                    auraScore = user.profile.auraScore,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = user.profile.displayName.split(" ").first(),
-                    color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                )
-                Text(
-                    text = user.profile.auraScore.grouped(),
-                    color = tierColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                )
-                Spacer(Modifier.height(6.dp))
+                if (user != null) {
+                    // Trophée au-dessus du 1er
+                    if (ranks[i] == 1) {
+                        Text("🏆", fontSize = 22.sp)
+                        Spacer(Modifier.height(2.dp))
+                    } else {
+                        Spacer(Modifier.height(24.dp))
+                    }
+
+                    // Avatar avec anneau tier
+                    InitialsAvatar(
+                        name = user.profile.displayName,
+                        ringColor = user.tier.color,
+                        size = avatarSizes[i],
+                        auraScore = user.profile.auraScore,
+                    )
+                    Spacer(Modifier.height(6.dp))
+
+                    // Prénom
+                    Text(
+                        text = user.profile.displayName.split(" ").first(),
+                        color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(4.dp))
+
+                    // Badge score
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(AuraPalette.SurfaceElevated)
+                            .border(1.dp, AuraPalette.CardBorder, RoundedCornerShape(10.dp))
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    ) {
+                        Text(
+                            text = user.profile.auraScore.grouped(),
+                            color = user.tier.color,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+
+                // Marche du podium
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(podiumHeight)
-                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .height(blockHeights[i].dp)
+                        .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
                         .background(
                             Brush.verticalGradient(
-                                listOf(tierColor.copy(alpha = 0.5f), tierColor.copy(alpha = 0.15f))
+                                listOf(
+                                    AuraPalette.SurfaceElevated,
+                                    AuraPalette.Surface.copy(alpha = 0.5f),
+                                )
                             )
+                        )
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.verticalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.12f),
+                                    Color.Transparent,
+                                )
+                            ),
+                            shape = RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp),
                         ),
-                    contentAlignment = Alignment.TopCenter,
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(medals[i], fontSize = 20.sp, modifier = Modifier.padding(top = 8.dp))
+                    Text(
+                        text = ranks[i].toString(),
+                        color = AuraPalette.TextMuted.copy(alpha = 0.35f),
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 42.sp,
+                    )
                 }
             }
         }
