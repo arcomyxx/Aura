@@ -43,6 +43,7 @@ data class BattleSupporter(
     val points: Int = 0,
     val taps: Int = 0,
     val bestCombo: Int = 0,
+    val auraEarned: Int = 0,
 )
 
 /** Bouton de soutien proposé aux supporters pendant une battle. */
@@ -75,6 +76,16 @@ object BattleRules {
 
     /** Part du score final convertie en aura réelle pour l'hôte. */
     fun auraFor(score: Int): Int = score / 10
+
+    /**
+     * Aura gagnée par un supporter selon sa part du score total.
+     * Min 2 s'il a participé, max 10, proportionnel à sa contribution.
+     */
+    fun supporterAuraFor(supporterPoints: Int, totalScore: Int): Int {
+        if (totalScore <= 0 || supporterPoints <= 0) return 0
+        val share = supporterPoints.toFloat() / totalScore
+        return (2 + (share * 8f).toInt()).coerceIn(2, 10)
+    }
 
     /** Multiplicateur de combo : x1, puis x2 dès 10, x3 dès 25, x5 dès 50. */
     fun comboMultiplier(combo: Int): Int = when {

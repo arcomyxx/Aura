@@ -44,6 +44,7 @@ import com.dubois.aura.model.UserProfile
 import com.dubois.aura.ui.components.AuraCard
 import com.dubois.aura.ui.components.AuraIcon
 import com.dubois.aura.ui.components.IconCircleButton
+import com.dubois.aura.ui.components.AuraGauge
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.components.blockTouchesBehind
@@ -468,6 +469,11 @@ private fun GlobalPodiumBlock(top: List<com.dubois.aura.model.RankedUser>) {
     }
     val heights = when (top.size) { 1 -> listOf(60); 2 -> listOf(44, 60); else -> listOf(44, 60, 36) }
     val medals = listOf("🥈", "🥇", "🥉")
+    val podiumColors = listOf(
+        androidx.compose.ui.graphics.Color(0xFFB0BEC5),
+        androidx.compose.ui.graphics.Color(0xFFFFD700),
+        androidx.compose.ui.graphics.Color(0xFFCD7F32),
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -475,18 +481,17 @@ private fun GlobalPodiumBlock(top: List<com.dubois.aura.model.RankedUser>) {
     ) {
         order.forEachIndexed { i, user ->
             val tierColor = user.tier.color
+            val medalColor = podiumColors[i]
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                InitialsAvatar(name = user.profile.displayName, ringColor = tierColor, size = if (i == 1) 48 else 38, auraScore = user.profile.auraScore)
-                Spacer(Modifier.height(4.dp))
+                AuraGauge(score = user.profile.auraScore, tierColor = tierColor, diameter = if (i == 1) 86 else 70, name = user.profile.displayName, photoBase64 = user.profile.photoUrl)
                 Text(user.profile.displayName.split(" ").first(), color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, maxLines = 1)
-                Text(user.profile.auraScore.grouped(), color = tierColor, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 Spacer(Modifier.height(4.dp))
                 androidx.compose.foundation.layout.Box(
                     modifier = Modifier.fillMaxWidth().height(heights[i].dp).clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(tierColor.copy(alpha = 0.4f), tierColor.copy(alpha = 0.1f)))),
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(medalColor.copy(alpha = 0.55f), medalColor.copy(alpha = 0.12f)))),
                     contentAlignment = Alignment.TopCenter,
                 ) { Text(medals[i], fontSize = 16.sp, modifier = Modifier.padding(top = 6.dp)) }
             }
@@ -505,7 +510,7 @@ private fun GlobalLeaderboardRow(user: com.dubois.aura.model.RankedUser) {
                 else Text("#${user.rank}", color = AuraPalette.TextMuted, fontSize = 12.sp)
             }
             Spacer(Modifier.width(8.dp))
-            InitialsAvatar(name = user.profile.displayName, ringColor = tierColor, size = 36, auraScore = user.profile.auraScore)
+            AuraGauge(score = user.profile.auraScore, tierColor = tierColor, diameter = 60, padded = false, name = user.profile.displayName, photoBase64 = user.profile.photoUrl)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -516,7 +521,6 @@ private fun GlobalLeaderboardRow(user: com.dubois.aura.model.RankedUser) {
                 )
                 Text(user.tier.displayName, color = AuraPalette.TextSecondary, fontSize = 11.sp)
             }
-            Text(user.profile.auraScore.grouped(), color = tierColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
     }
 }
@@ -534,6 +538,12 @@ private fun GroupPodiumBlock(top: List<GroupMember>, myUid: String?) {
         else -> listOf(60, 80, 50)
     }
     val medals = listOf("🥈", "🥇", "🥉")
+    // ordre d'affichage [2e, 1er, 3e] → couleurs de podium correspondantes
+    val podiumColors = listOf(
+        androidx.compose.ui.graphics.Color(0xFFB0BEC5), // argent
+        androidx.compose.ui.graphics.Color(0xFFFFD700), // or
+        androidx.compose.ui.graphics.Color(0xFFCD7F32), // bronze
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -541,29 +551,24 @@ private fun GroupPodiumBlock(top: List<GroupMember>, myUid: String?) {
     ) {
         order.forEachIndexed { i, member ->
             val tierColor = member.tier.color
+            val medalColor = podiumColors[i]
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                InitialsAvatar(
+                AuraGauge(
+                    score = member.groupAuraScore,
+                    tierColor = tierColor,
+                    diameter = if (i == 1) 86 else 70,
                     name = member.displayName,
-                    ringColor = tierColor,
-                    size = if (i == 1) 56 else 44,
                     photoBase64 = member.photoUrl,
                 )
-                Spacer(Modifier.height(6.dp))
                 Text(
                     text = member.displayName.split(" ").first(),
                     color = if (member.uid == myUid) AuraPalette.Primary else AuraPalette.TextPrimary,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp,
                     maxLines = 1,
-                )
-                Text(
-                    text = member.groupAuraScore.grouped(),
-                    color = tierColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
                 )
                 Spacer(Modifier.height(6.dp))
                 androidx.compose.foundation.layout.Box(
@@ -573,7 +578,7 @@ private fun GroupPodiumBlock(top: List<GroupMember>, myUid: String?) {
                         .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                         .background(
                             androidx.compose.ui.graphics.Brush.verticalGradient(
-                                listOf(tierColor.copy(alpha = 0.5f), tierColor.copy(alpha = 0.15f))
+                                listOf(medalColor.copy(alpha = 0.55f), medalColor.copy(alpha = 0.12f))
                             )
                         ),
                     contentAlignment = Alignment.TopCenter,
@@ -605,10 +610,12 @@ private fun GroupMemberRow(
                 else Text("#$rank", color = AuraPalette.TextMuted, fontSize = 12.sp)
             }
             Spacer(Modifier.width(10.dp))
-            InitialsAvatar(
+            AuraGauge(
+                score = member.groupAuraScore,
+                tierColor = tierColor,
+                diameter = 60,
+                padded = false,
                 name = member.displayName,
-                ringColor = tierColor,
-                size = 40,
                 photoBase64 = member.photoUrl,
             )
             Spacer(Modifier.width(12.dp))
@@ -627,22 +634,13 @@ private fun GroupMemberRow(
                 }
                 Text(member.tier.displayName, color = AuraPalette.TextSecondary, fontSize = 11.sp)
             }
-            Column(horizontalAlignment = Alignment.End) {
+            if (canReport) {
                 Text(
-                    text = member.groupAuraScore.grouped(),
-                    color = tierColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    "+ Signaler",
+                    color = AuraPalette.Primary,
+                    fontSize = 11.sp,
+                    modifier = Modifier.clickable { onReport() },
                 )
-                if (canReport) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "+ Signaler",
-                        color = AuraPalette.Primary,
-                        fontSize = 11.sp,
-                        modifier = Modifier.clickable { onReport() },
-                    )
-                }
             }
         }
     }

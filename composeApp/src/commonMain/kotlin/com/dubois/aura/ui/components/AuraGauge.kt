@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
@@ -38,6 +40,9 @@ fun AuraGauge(
     tierColor: Color,
     modifier: Modifier = Modifier,
     diameter: Int = 200,
+    padded: Boolean = true,
+    name: String = "",
+    photoBase64: String = "",
 ) {
     val tier = AuraTier.forScore(score)
     val next = AuraTier.entries.firstOrNull { it.minScore > tier.minScore }
@@ -47,87 +52,131 @@ fun AuraGauge(
 
     // Réserve la place des flammes au-dessus de la jauge pour qu'elles ne soient pas coupées.
     val headroom = diameter / 2f * auraHeadroom(score)
-    Box(
-        modifier = modifier
-            .padding(top = headroom.dp, start = 24.dp, end = 24.dp)
-            .size(diameter.dp)
-            .auraFlame(score),
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(Modifier.size(diameter.dp)) {
-            val stroke = size.minDimension * 0.045f
-            val inset = stroke * 2
-            val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
-            val topLeft = Offset(inset, inset)
+    val sidePadding = if (padded) 24.dp else 0.dp
 
-            // Disque sombre central (lisibilité du score par-dessus l'aura) + halo
-            drawCircle(
-                color = AuraPalette.Background.copy(alpha = 0.88f),
-                radius = size.minDimension * 0.5f - stroke / 2,
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(tierColor.copy(alpha = 0.22f), Color.Transparent),
-                    center = center,
-                    radius = size.minDimension * 0.42f,
-                ),
-                radius = size.minDimension * 0.42f,
-            )
-
-            // Anneau externe discret
-            drawCircle(
-                color = AuraPalette.CardBorder,
-                radius = size.minDimension * 0.5f - stroke / 2,
-                style = Stroke(width = stroke * 0.5f),
-            )
-            // Piste de l'arc
-            drawArc(
-                color = AuraPalette.SurfaceElevated,
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(width = stroke, cap = StrokeCap.Round),
-            )
-            // Arc de progression
-            drawArc(
-                brush = Brush.sweepGradient(
-                    listOf(Color(0xFFFFE680), tierColor, tierColor)
-                ),
-                startAngle = -90f,
-                sweepAngle = 360f * progress,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(width = stroke, cap = StrokeCap.Round),
-            )
-            // Anneau interne discret
-            drawCircle(
-                color = tierColor.copy(alpha = 0.25f),
-                radius = size.minDimension * 0.34f,
-                style = Stroke(width = 1.dp.toPx()),
-            )
-        }
-
+    if (name.isNotEmpty()) {
+        // Mode avatar : photo plein cercle + arc de progression autour + score sous la jauge
         Column(
+            modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
         ) {
+            Box(
+                modifier = Modifier
+                    .padding(top = headroom.dp, start = sidePadding, end = sidePadding)
+                    .size(diameter.dp)
+                    .auraFlame(score),
+                contentAlignment = Alignment.Center,
+            ) {
+                // Avatar remplit le cercle (légèrement plus petit pour laisser l'arc visible)
+                InitialsAvatar(
+                    name = name,
+                    ringColor = tierColor,
+                    size = (diameter * 0.82f).toInt(),
+                    photoBase64 = photoBase64,
+                )
+                // Arc de progression par-dessus les bords de l'avatar
+                Canvas(Modifier.size(diameter.dp)) {
+                    val stroke = size.minDimension * 0.055f
+                    val inset = stroke / 2
+                    val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
+                    val topLeft = Offset(inset, inset)
+                    // Piste
+                    drawArc(
+                        color = AuraPalette.SurfaceElevated.copy(alpha = 0.6f),
+                        startAngle = 0f, sweepAngle = 360f, useCenter = false,
+                        topLeft = topLeft, size = arcSize,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
+                    // Progression
+                    drawArc(
+                        brush = Brush.sweepGradient(listOf(Color(0xFFFFE680), tierColor, tierColor)),
+                        startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
+                        topLeft = topLeft, size = arcSize,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
+                }
+            }
+            Spacer(Modifier.height(6.dp))
             Text(
                 text = score.compact(),
                 color = tierColor,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
-                fontSize = (diameter * 0.22f).sp,
+                fontSize = (diameter * 0.20f).sp,
             )
-            Text(
-                text = "AURA",
-                color = AuraPalette.TextMuted,
-                fontSize = 11.sp,
-                letterSpacing = 3.sp,
-                fontWeight = FontWeight.Medium,
-            )
+        }
+    } else {
+        // Mode score : chiffre + "AURA" à l'intérieur de la jauge
+        Box(
+            modifier = modifier
+                .then(
+                    if (padded) Modifier.padding(top = headroom.dp, start = 24.dp, end = 24.dp)
+                    else Modifier.padding(top = headroom.dp)
+                )
+                .size(diameter.dp)
+                .auraFlame(score),
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(Modifier.size(diameter.dp)) {
+                val stroke = size.minDimension * 0.045f
+                val inset = stroke * 2
+                val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
+                val topLeft = Offset(inset, inset)
+
+                drawCircle(
+                    color = AuraPalette.Background.copy(alpha = 0.88f),
+                    radius = size.minDimension * 0.5f - stroke / 2,
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(tierColor.copy(alpha = 0.22f), Color.Transparent),
+                        center = center,
+                        radius = size.minDimension * 0.42f,
+                    ),
+                    radius = size.minDimension * 0.42f,
+                )
+                drawCircle(
+                    color = AuraPalette.CardBorder,
+                    radius = size.minDimension * 0.5f - stroke / 2,
+                    style = Stroke(width = stroke * 0.5f),
+                )
+                drawArc(
+                    color = AuraPalette.SurfaceElevated,
+                    startAngle = 0f, sweepAngle = 360f, useCenter = false,
+                    topLeft = topLeft, size = arcSize,
+                    style = Stroke(width = stroke, cap = StrokeCap.Round),
+                )
+                drawArc(
+                    brush = Brush.sweepGradient(listOf(Color(0xFFFFE680), tierColor, tierColor)),
+                    startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
+                    topLeft = topLeft, size = arcSize,
+                    style = Stroke(width = stroke, cap = StrokeCap.Round),
+                )
+                drawCircle(
+                    color = tierColor.copy(alpha = 0.25f),
+                    radius = size.minDimension * 0.34f,
+                    style = Stroke(width = 1.dp.toPx()),
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = score.compact(),
+                    color = tierColor,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (diameter * 0.22f).sp,
+                )
+                Text(
+                    text = "AURA",
+                    color = AuraPalette.TextMuted,
+                    fontSize = 11.sp,
+                    letterSpacing = 3.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
     }
 }

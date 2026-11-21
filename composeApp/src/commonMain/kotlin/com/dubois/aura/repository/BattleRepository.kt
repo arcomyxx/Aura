@@ -118,6 +118,7 @@ class BattleRepository {
      * l'aura gagnée. Transactionnel : une battle n'est créditée qu'une fois,
      * même si plusieurs appareils tentent de la clôturer.
      * Renvoie l'aura créditée (0 si déjà clôturée).
+     * Crédite également les supporters après la transaction.
      */
     suspend fun finishBattle(battleId: String): Result<Int> {
         return try {
@@ -132,9 +133,36 @@ class BattleRepository {
                 if (aura > 0) update(userRef, "auraScore" to FieldValue.increment(aura))
                 aura
             }
+            if (awarded > 0) awardSupporters(battleId)
             Result.success(awarded)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    /** Crédite chaque supporter proportionnellement à sa contribution au score. */
+    private suspend fun awardSupporters(battleId: String) {
+        try {
+            val battleRef = battles.document(battleId)
+            val battle = battleRef.get().data(Battle.serializer())
+            val supporters = battleRef.collection("supporters").get()
+                .documents.map { it.data(BattleSupporter.serializer()) }
+            if (supporters.isEmpty()) return
+            val users = firestore.collection("users")
+            val batch = firestore.batch()
+            supporters.forEach { supporter ->
+                val aura = BattleRules.supporterAuraFor(supporter.points, battle.score)
+                if (aura > 0) {
+                    batch.update(users.document(supporter.uid), "auraScore" to FieldValue.increment(aura))
+                    batch.update(
+                        battleRef.collection("supporters").document(supporter.uid),
+                        "auraEarned" to aura,
+                    )
+                }
+            }
+            batch.commit()
+        } catch (_: Exception) {
+            // Échec silencieux : la battle est déjà clôturée pour l'hôte.
         }
     }
 

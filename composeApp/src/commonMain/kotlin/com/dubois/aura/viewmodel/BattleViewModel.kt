@@ -153,9 +153,20 @@ class BattleViewModel : ViewModel() {
                     .collect { _current.value = it }
             },
             viewModelScope.launch {
+                var supporterAuraNotified = false
                 battleRepo.observeSupporters(battle.id)
                     .catch { _message.value = it.message }
-                    .collect { _supporters.value = it }
+                    .collect { supporters ->
+                        _supporters.value = supporters
+                        // Notifier le supporter de son gain d'aura dès que le champ est renseigné
+                        if (!supporterAuraNotified && battle.hostUid != myUid) {
+                            val myAura = supporters.firstOrNull { it.uid == myUid }?.auraEarned ?: 0
+                            if (myAura > 0) {
+                                supporterAuraNotified = true
+                                _auraEarned.emit(myAura)
+                            }
+                        }
+                    }
             },
             // Horloge + jauge de hype.
             viewModelScope.launch {
