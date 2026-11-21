@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -75,7 +76,7 @@ fun AuraGauge(
                 InitialsAvatar(
                     name = name,
                     ringColor = tierColor,
-                    size = if (arc) (diameter * 0.82f).toInt() else diameter,
+                    size = (diameter * 0.82f).toInt(),
                     photoBase64 = photoBase64,
                 )
                 // Arc de progression par-dessus les bords de l'avatar
@@ -144,6 +145,7 @@ fun AuraGauge(
             contentAlignment = Alignment.Center,
         ) {
             Canvas(Modifier.size(diameter.dp)) {
+                scale(0.82f) {
                 val stroke = size.minDimension * 0.045f
                 val inset = stroke * 2
                 val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
@@ -205,6 +207,7 @@ fun AuraGauge(
                     radius = size.minDimension * 0.34f,
                     style = Stroke(width = 1.dp.toPx()),
                 )
+                } // end scale
             }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
