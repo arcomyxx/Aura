@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Flamme extérieure -->
+    <path
+        android:pathData="M54,10 C63,24 82,44 82,66 C82,88 70,100 54,106 C38,100 26,88 26,66 C26,44 45,24 54,10Z"
+        android:fillColor="#FFFFFF"/>
+
+    <!-- Langue gauche -->
+    <path
+        android:pathData="M34,72 C26,56 18,36 29,16 C32,34 37,56 34,72Z"
+        android:fillColor="#CCCCCC"/>
+
+    <!-- Langue droite -->
+    <path
+        android:pathData="M74,72 C82,56 90,36 79,16 C76,34 71,56 74,72Z"
+        android:fillColor="#CCCCCC"/>
+
+    <!-- Noyau (découpe) pour l'effet flamme intérieure -->
+    <path
+        android:pathData="M54,32 C61,46 76,60 76,76 C76,92 67,100 54,106 C41,100 32,92 32,76 C32,60 47,46 54,32Z"
+        android:fillColor="#888888"/>
+
+</vector>
