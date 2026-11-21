@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.dubois.aura.model.AuraTier
@@ -153,6 +154,7 @@ private fun flamePath(path: Path, c: Offset, r: Float, k: Float, s: AuraStyle, t
 private fun DrawScope.drawAuraBack(s: AuraStyle, time: Float, path: Path) {
     val r = size.minDimension / 2f
     val c = center
+    clipRect(bottom = c.y + r * 1.05f) {
 
     // Halo diffus
     val glowCenter = Offset(c.x, c.y - r * s.reach * 0.5f)
@@ -186,6 +188,7 @@ private fun DrawScope.drawAuraBack(s: AuraStyle, time: Float, path: Path) {
             ),
         )
     }
+    } // end clipRect
 }
 
 private fun DrawScope.drawAuraFront(s: AuraStyle, time: Float, bolt: Path) {
