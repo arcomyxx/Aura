@@ -83,7 +83,8 @@ fun ProfileTab(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 28.dp, bottom = 8.dp)
+                    .padding(vertical = 28.dp)
+                    .offset(y = (-20).dp)
                     .drawBehind {
                         // Halo extérieur très large
                         val rOuter = size.width * 1.05f
