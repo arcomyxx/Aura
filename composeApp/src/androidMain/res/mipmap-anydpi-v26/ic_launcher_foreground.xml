@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Flamme mise à l'échelle à 75 % du viewport 108×108 (scale=0.75, pivot=(54,54)).
+  Zone sûre adaptative : x 33–75, y 21–93.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
@@ -6,30 +10,30 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Lueur de base -->
+    <!-- Lueur de base sous la flamme -->
     <path
-        android:pathData="M54,108 C76,108 92,104 92,100 C92,96 76,92 54,92 C32,92 16,96 16,100 C16,104 32,108 54,108Z"
-        android:fillAlpha="0.25">
+        android:pathData="M54,93 C70,93 82,90 82,87 C82,84 70,81 54,81 C38,81 26,84 26,87 C26,90 38,93 54,93Z"
+        android:fillAlpha="0.20">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="radial"
                 android:startX="54"
-                android:startY="100"
-                android:gradientRadius="38">
+                android:startY="87"
+                android:gradientRadius="30">
                 <item android:offset="0.0" android:color="#FFAA00"/>
                 <item android:offset="1.0" android:color="#00000000"/>
             </gradient>
         </aapt:attr>
     </path>
 
-    <!-- Flamme extérieure (corps principal) -->
+    <!-- Flamme extérieure -->
     <path
-        android:pathData="M54,10 C63,24 82,44 82,66 C82,88 70,100 54,106 C38,100 26,88 26,66 C26,44 45,24 54,10Z">
+        android:pathData="M54,21 C61,32 75,47 75,63 C75,80 66,89 54,93 C42,89 33,80 33,63 C33,47 47,32 54,21Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="54" android:startY="106"
-                android:endX="54" android:endY="10">
+                android:startX="54" android:startY="93"
+                android:endX="54" android:endY="21">
                 <item android:offset="0.00" android:color="#C43A00"/>
                 <item android:offset="0.35" android:color="#FF6B00"/>
                 <item android:offset="0.70" android:color="#FFB800"/>
@@ -40,13 +44,13 @@
 
     <!-- Langue gauche -->
     <path
-        android:pathData="M34,72 C26,56 18,36 29,16 C32,34 37,56 34,72Z"
-        android:fillAlpha="0.70">
+        android:pathData="M39,68 C33,56 27,41 35,26 C38,39 41,56 39,68Z"
+        android:fillAlpha="0.72">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="34" android:startY="72"
-                android:endX="29" android:endY="16">
+                android:startX="39" android:startY="68"
+                android:endX="35" android:endY="26">
                 <item android:offset="0.00" android:color="#C43A00"/>
                 <item android:offset="0.50" android:color="#FF6B00"/>
                 <item android:offset="1.00" android:color="#FFB800"/>
@@ -56,13 +60,13 @@
 
     <!-- Langue droite -->
     <path
-        android:pathData="M74,72 C82,56 90,36 79,16 C76,34 71,56 74,72Z"
-        android:fillAlpha="0.70">
+        android:pathData="M69,68 C75,56 81,41 73,26 C71,39 67,56 69,68Z"
+        android:fillAlpha="0.72">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="74" android:startY="72"
-                android:endX="79" android:endY="16">
+                android:startX="69" android:startY="68"
+                android:endX="73" android:endY="26">
                 <item android:offset="0.00" android:color="#C43A00"/>
                 <item android:offset="0.50" android:color="#FF6B00"/>
                 <item android:offset="1.00" android:color="#FFB800"/>
@@ -72,12 +76,12 @@
 
     <!-- Flamme intérieure -->
     <path
-        android:pathData="M54,32 C61,46 76,60 76,76 C76,92 67,100 54,106 C41,100 32,92 32,76 C32,60 47,46 54,32Z">
+        android:pathData="M54,38 C59,48 71,59 71,71 C71,83 64,89 54,93 C44,89 38,83 38,71 C38,59 49,48 54,38Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="54" android:startY="106"
-                android:endX="54" android:endY="32">
+                android:startX="54" android:startY="93"
+                android:endX="54" android:endY="38">
                 <item android:offset="0.00" android:color="#FF7A00"/>
                 <item android:offset="0.50" android:color="#FFD700"/>
                 <item android:offset="1.00" android:color="#FFFFF0"/>
@@ -87,14 +91,14 @@
 
     <!-- Noyau lumineux -->
     <path
-        android:pathData="M54,66 C59,66 63,71 63,78 C63,85 59,92 54,92 C49,92 45,85 45,78 C45,71 49,66 54,66Z"
+        android:pathData="M54,61 C58,61 61,66 61,72 C61,78 58,83 54,83 C50,83 47,78 47,72 C47,66 50,61 54,61Z"
         android:fillAlpha="0.85">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="radial"
                 android:startX="54"
-                android:startY="76"
-                android:gradientRadius="14">
+                android:startY="70"
+                android:gradientRadius="11">
                 <item android:offset="0.0" android:color="#FFFFFF"/>
                 <item android:offset="0.6" android:color="#FFF5C0"/>
                 <item android:offset="1.0" android:color="#FFD700"/>
