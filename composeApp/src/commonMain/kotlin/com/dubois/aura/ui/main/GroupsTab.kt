@@ -492,9 +492,7 @@ private fun GlobalPodiumBlock(top: List<com.dubois.aura.model.RankedUser>) {
                     Spacer(Modifier.height(24.dp))
                 }
                 if (user != null) {
-                    Box(modifier = Modifier.size(avatarSizes[i].dp).clip(CircleShape)) {
-                        AuraGauge(score = user.profile.auraScore, tierColor = user.tier.color, diameter = avatarSizes[i], padded = false, arc = false, name = user.profile.displayName, photoBase64 = user.profile.photoUrl)
-                    }
+                    AuraGauge(score = user.profile.auraScore, tierColor = user.tier.color, diameter = avatarSizes[i], padded = false, arc = false, name = user.profile.displayName, photoBase64 = user.profile.photoUrl)
                     Spacer(Modifier.height(6.dp))
                     Text(user.profile.displayName.split(" ").first(), color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, maxLines = 1)
                     Spacer(Modifier.height(4.dp))
@@ -591,9 +589,7 @@ private fun GroupPodiumBlock(top: List<GroupMember>, myUid: String?) {
                     Spacer(Modifier.height(24.dp))
                 }
                 if (member != null) {
-                    Box(modifier = Modifier.size(avatarSizes[i].dp).clip(CircleShape)) {
-                        AuraGauge(score = member.groupAuraScore, tierColor = member.tier.color, diameter = avatarSizes[i], padded = false, arc = false, name = member.displayName, photoBase64 = member.photoUrl)
-                    }
+                    AuraGauge(score = member.groupAuraScore, tierColor = member.tier.color, diameter = avatarSizes[i], padded = false, arc = false, name = member.displayName, photoBase64 = member.photoUrl)
                     Spacer(Modifier.height(6.dp))
                     Text(member.displayName.split(" ").first(), color = if (member.uid == myUid) AuraPalette.Primary else AuraPalette.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, maxLines = 1)
                     Spacer(Modifier.height(4.dp))
