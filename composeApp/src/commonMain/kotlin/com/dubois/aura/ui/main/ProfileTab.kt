@@ -3,6 +3,9 @@ package com.dubois.aura.ui.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,7 +79,25 @@ fun ProfileTab(
     ) {
         item {
             Spacer(Modifier.height(8.dp))
-            AuraGauge(score = me?.profile?.auraScore ?: 0, tierColor = tierColor, diameter = 240)
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .drawBehind {
+                        val r = size.width * 0.72f
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                0.0f to tierColor.copy(alpha = 0.28f),
+                                0.55f to tierColor.copy(alpha = 0.10f),
+                                1.0f to Color.Transparent,
+                                radius = r,
+                            ),
+                            radius = r,
+                        )
+                    },
+            ) {
+                AuraGauge(score = me?.profile?.auraScore ?: 0, tierColor = tierColor, diameter = 240)
+            }
             Spacer(Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
