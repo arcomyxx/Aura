@@ -88,11 +88,15 @@ fun AuraGauge(
                         topLeft = topLeft, size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Round),
                     )
-                    // Progression : gris → couleur du tier
+                    // Progression : transparent→opaque, la piste grise en dessous crée l'effet gris→jaune
                     rotate(-90f) {
                         drawArc(
                             brush = Brush.sweepGradient(
-                                listOf(AuraPalette.SurfaceElevated, tierColor, tierColor)
+                                colorStops = arrayOf(
+                                    0f to tierColor.copy(alpha = 0f),
+                                    progress.coerceAtLeast(0.01f) to tierColor,
+                                    1f to tierColor,
+                                )
                             ),
                             startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                             topLeft = topLeft, size = arcSize,
@@ -151,11 +155,15 @@ fun AuraGauge(
                     topLeft = topLeft, size = arcSize,
                     style = Stroke(width = stroke, cap = StrokeCap.Round),
                 )
-                // Progression : gris → couleur du tier
+                // Progression : transparent→opaque, la piste grise en dessous crée l'effet gris→jaune
                 rotate(-90f) {
                     drawArc(
                         brush = Brush.sweepGradient(
-                            listOf(AuraPalette.SurfaceElevated, tierColor, tierColor)
+                            colorStops = arrayOf(
+                                0f to tierColor.copy(alpha = 0f),
+                                progress.coerceAtLeast(0.01f) to tierColor,
+                                1f to tierColor,
+                            )
                         ),
                         startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                         topLeft = topLeft, size = arcSize,
