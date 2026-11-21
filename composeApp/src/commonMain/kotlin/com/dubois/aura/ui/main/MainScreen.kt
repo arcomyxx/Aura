@@ -45,6 +45,7 @@ import com.dubois.aura.ui.theme.colorFromHex
 import com.dubois.aura.ui.theme.toHex
 import com.dubois.aura.util.LocalShareBattle
 import com.dubois.aura.util.LocalInviteToBattle
+import com.dubois.aura.util.LocalShareGroupInvite
 import com.dubois.aura.util.signed
 import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
@@ -61,6 +62,7 @@ private val TABS = listOf(
 fun MainScreen(
     viewModel: MainViewModel,
     battleViewModel: BattleViewModel,
+    pendingGroupToken: String? = null,
     onLogout: () -> Unit,
 ) {
     val me by viewModel.me.collectAsState()
@@ -107,6 +109,7 @@ fun MainScreen(
     LaunchedEffect(Unit) {
         viewModel.load()
         battleViewModel.load()
+        if (pendingGroupToken != null) viewModel.joinGroupByToken(pendingGroupToken)
     }
 
     // Aura créditée à la fin d'une de mes battles -> message + rechargement du score.
@@ -292,6 +295,7 @@ fun MainScreen(
 
         // Groupe sélectionné (superposé par-dessus les onglets)
         selectedGroup?.let { group ->
+            val shareGroupInvite = LocalShareGroupInvite.current
             GroupDetailScreen(
                 group = group,
                 leaderboard = groupLeaderboard,
@@ -305,6 +309,11 @@ fun MainScreen(
                 },
                 onLeave = { viewModel.leaveGroup(group) },
                 onDelete = { viewModel.deleteGroup(group) },
+                onShareLink = {
+                    viewModel.generateGroupInviteLink(group) { token ->
+                        shareGroupInvite(group.name, token)
+                    }
+                },
             )
         }
 

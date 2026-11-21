@@ -12,9 +12,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import com.dubois.aura.util.LocalInviteToBattle
 import com.dubois.aura.util.LocalShareBattle
+import com.dubois.aura.util.LocalShareGroupInvite
 import com.dubois.aura.util.LocalShareProfile
 import com.dubois.aura.util.inviteToBattle
 import com.dubois.aura.util.shareBattleCard
+import com.dubois.aura.util.shareGroupInvite
 import com.dubois.aura.util.shareProfileCard
 import com.google.firebase.messaging.FirebaseMessaging
 import dev.gitlive.firebase.Firebase
@@ -29,6 +31,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         createNotificationChannel()
 
+        val pendingToken = intent?.data?.takeIf { it.scheme == "aura" && it.host == "join" }
+            ?.lastPathSegment
+
         setContent {
             CompositionLocalProvider(
                 LocalShareProfile provides { name, tierName, score, rank, tierHex ->
@@ -40,8 +45,11 @@ class MainActivity : ComponentActivity() {
                 LocalInviteToBattle provides { hostName ->
                     inviteToBattle(this, hostName)
                 },
+                LocalShareGroupInvite provides { groupName, token ->
+                    shareGroupInvite(this, groupName, token)
+                },
             ) {
-                App()
+                App(pendingGroupToken = pendingToken)
             }
         }
     }

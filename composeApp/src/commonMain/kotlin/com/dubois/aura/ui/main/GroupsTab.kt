@@ -292,6 +292,7 @@ fun GroupDetailScreen(
     onReport: (GroupMember, EventType, String) -> Unit,
     onLeave: () -> Unit,
     onDelete: () -> Unit,
+    onShareLink: () -> Unit = {},
 ) {
     var showInvite by remember { mutableStateOf(false) }
     var showOptions by remember { mutableStateOf(false) }
@@ -344,6 +345,10 @@ fun GroupDetailScreen(
                         androidx.compose.material3.DropdownMenuItem(
                             text = { Text("Inviter un ami", color = AuraPalette.TextPrimary, fontSize = 14.sp) },
                             onClick = { showOptions = false; showInvite = true },
+                        )
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { Text("Partager le lien", color = AuraPalette.TextPrimary, fontSize = 14.sp) },
+                            onClick = { showOptions = false; onShareLink() },
                         )
                         if (group.createdBy == myUid) {
                             androidx.compose.material3.DropdownMenuItem(

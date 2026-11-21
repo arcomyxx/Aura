@@ -4,6 +4,7 @@ import com.dubois.aura.model.AuraEvent
 import com.dubois.aura.model.EventType
 import com.dubois.aura.model.Group
 import com.dubois.aura.model.GroupInvite
+import com.dubois.aura.model.GroupLink
 import com.dubois.aura.model.GroupMember
 import com.dubois.aura.model.UserProfile
 import dev.gitlive.firebase.Firebase
@@ -277,6 +278,46 @@ class GroupRepository {
                 } catch (_: Exception) {}
             }
         } catch (_: Exception) {}
+    }
+
+    /** Génère un token d'invitation partageable pour [group] et le stocke dans Firestore. */
+    suspend fun generateInviteLink(group: Group): Result<String> {
+        return try {
+            val uid = myUid() ?: return Result.failure(IllegalStateException("Non connecté"))
+            val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+            val token = (1..20).map { chars[kotlin.random.Random.nextInt(chars.length)] }.joinToString("")
+            val now = Clock.System.now().toEpochMilliseconds()
+            val link = GroupLink(token = token, groupId = group.id, groupName = group.name, createdBy = uid, createdAt = now)
+            firestore.collection("groupLinks").document(token).set(GroupLink.serializer(), link)
+            Result.success(token)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /** Rejoint le groupe associé au [token] d'invitation. */
+    suspend fun joinByToken(token: String): Result<Group> {
+        return try {
+            val uid = myUid() ?: return Result.failure(IllegalStateException("Non connecté"))
+            val linkDoc = firestore.collection("groupLinks").document(token).get()
+            if (!linkDoc.exists) return Result.failure(IllegalArgumentException("Lien invalide ou expiré"))
+            val link = linkDoc.data(GroupLink.serializer())
+
+            val me = firestore.collection("users").document(uid).get().data(UserProfile.serializer())
+            val groupRef = firestore.collection("groups").document(link.groupId)
+            val group = groupRef.get().data(Group.serializer())
+
+            if (uid !in group.memberUids) {
+                groupRef.update(mapOf("memberUids" to (group.memberUids + uid).distinct()))
+                membersCol(link.groupId).document(uid).set(
+                    GroupMember.serializer(),
+                    GroupMember(uid = uid, displayName = me.displayName, photoUrl = me.photoUrl),
+                )
+            }
+            Result.success(group)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     /** Événements récents du groupe (les plus récents d'abord). */

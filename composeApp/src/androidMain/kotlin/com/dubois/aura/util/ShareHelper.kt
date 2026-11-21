@@ -39,6 +39,17 @@ fun shareBattleCard(
     shareCard(context, bitmap, "Ma battle d'aura ⚔️")
 }
 
+fun shareGroupInvite(context: Context, groupName: String, token: String) {
+    val text = "Rejoins mon groupe \"$groupName\" sur Aura 🔥\n\n" +
+        "Ouvre ce lien si tu as l'app :\naura://join/$token\n\n" +
+        "Sans l'app, télécharge Aura :\nhttps://play.google.com/store/apps/details?id=com.dubois.aura"
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+    context.startActivity(Intent.createChooser(intent, "Inviter dans le groupe"))
+}
+
 fun inviteToBattle(context: Context, hostName: String) {
     val text = "🔥 $hostName est en battle d'aura en ce moment ! Rejoins la hype sur l'appli Aura !"
     val intent = Intent(Intent.ACTION_SEND).apply {

@@ -21,7 +21,7 @@ import com.dubois.aura.viewmodel.UserViewModel
 
 @Composable
 @Preview
-fun App() {
+fun App(pendingGroupToken: String? = null) {
     val navController = rememberNavController()
     val userViewModel = remember { UserViewModel() }
     val mainViewModel = remember { MainViewModel() }
@@ -95,6 +95,7 @@ fun App() {
                 MainScreen(
                     viewModel = mainViewModel,
                     battleViewModel = battleViewModel,
+                    pendingGroupToken = pendingGroupToken,
                     onLogout = {
                         userViewModel.logout()
                         AuraPalette.setAccent(null) // revient au thème par défaut

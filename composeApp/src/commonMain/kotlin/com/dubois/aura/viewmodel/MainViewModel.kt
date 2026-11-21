@@ -386,4 +386,23 @@ class MainViewModel : ViewModel() {
         _groupLeaderboard.value = emptyList()
         _groupLoading.value = false
     }
+
+    fun generateGroupInviteLink(group: Group, onResult: (token: String) -> Unit) {
+        viewModelScope.launch {
+            groupRepo.generateInviteLink(group)
+                .onSuccess { onResult(it) }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun joinGroupByToken(token: String) {
+        viewModelScope.launch {
+            groupRepo.joinByToken(token)
+                .onSuccess { group ->
+                    _message.value = "Vous avez rejoint « ${group.name} »"
+                    groupRepo.myGroups().onSuccess { list -> _groups.value = list }
+                }
+                .onFailure { _message.value = it.message }
+        }
+    }
 }
