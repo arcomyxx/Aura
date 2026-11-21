@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -88,7 +91,7 @@ fun AuraGauge(
                         topLeft = topLeft, size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Round),
                     )
-                    // Progression : gris→couleur du tier, sans cap arrondi au départ
+                    // Progression : gris→couleur du tier, sans cap au départ
                     rotate(-90f) {
                         drawArc(
                             brush = Brush.sweepGradient(
@@ -101,6 +104,19 @@ fun AuraGauge(
                             startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                             topLeft = topLeft, size = arcSize,
                             style = Stroke(width = stroke, cap = StrokeCap.Butt),
+                        )
+                    }
+                    // Cap arrondi uniquement en bout d'arc
+                    if (progress > 0.01f) {
+                        val endAngle = (-90f + 360f * progress) * (PI / 180.0)
+                        val arcR = size.minDimension / 2f - inset
+                        drawCircle(
+                            color = tierColor,
+                            radius = stroke / 2f,
+                            center = Offset(
+                                center.x + arcR * cos(endAngle).toFloat(),
+                                center.y + arcR * sin(endAngle).toFloat(),
+                            ),
                         )
                     }
                 }
@@ -155,7 +171,7 @@ fun AuraGauge(
                     topLeft = topLeft, size = arcSize,
                     style = Stroke(width = stroke, cap = StrokeCap.Round),
                 )
-                // Progression : gris→couleur du tier, sans cap arrondi au départ
+                // Progression : gris→couleur du tier, sans cap au départ
                 rotate(-90f) {
                     drawArc(
                         brush = Brush.sweepGradient(
@@ -168,6 +184,19 @@ fun AuraGauge(
                         startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                         topLeft = topLeft, size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Butt),
+                    )
+                }
+                // Cap arrondi uniquement en bout d'arc
+                if (progress > 0.01f) {
+                    val endAngle = (-90f + 360f * progress) * (PI / 180.0)
+                    val arcR = size.minDimension / 2f - inset
+                    drawCircle(
+                        color = tierColor,
+                        radius = stroke / 2f,
+                        center = Offset(
+                            center.x + arcR * cos(endAngle).toFloat(),
+                            center.y + arcR * sin(endAngle).toFloat(),
+                        ),
                     )
                 }
                 drawCircle(
