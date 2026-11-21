@@ -57,7 +57,7 @@ fun AuraGauge(
         ((score - tier.minScore).toFloat() / (next.minScore - tier.minScore)).coerceIn(0f, 1f)
     }
 
-    val headroom = if (flame) diameter / 2f * auraHeadroom(score) else 0f
+    val headroom = if (flame) diameter / 2f * auraHeadroom(score) * 0.5f else 0f
     val sidePadding = if (padded) 24.dp else 0.dp
 
     if (name.isNotEmpty()) {
