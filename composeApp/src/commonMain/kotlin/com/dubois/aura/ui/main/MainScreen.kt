@@ -38,8 +38,8 @@ import kotlin.time.Clock
 import com.dubois.aura.model.AuraEvent
 import com.dubois.aura.model.DailyLimits
 import com.dubois.aura.model.RankedUser
+import com.dubois.aura.ui.components.AuraBottomNav
 import com.dubois.aura.ui.components.AuraHeader
-import com.dubois.aura.ui.components.AuraTabBar
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.colorFromHex
 import com.dubois.aura.ui.theme.toHex
@@ -49,7 +49,12 @@ import com.dubois.aura.util.signed
 import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
 
-private val TABS = listOf("Profil", "Groupes", "Battle", "Amis")
+private val TABS = listOf(
+    "Profil"  to "◉",
+    "Groupes" to "⬡",
+    "Battle"  to "⚔",
+    "Amis"    to "✦",
+)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -226,38 +231,13 @@ fun MainScreen(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
-            AuraTabBar(tabs = TABS, selected = selectedTab, onSelect = { selectedTab = it })
-            Spacer(Modifier.height(8.dp))
-        }
-
-        // Bouton flottant "Signaler" — visible depuis tous les onglets
-        if (currentBattle == null && selectedFriend == null && selectedGroup == null) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .safeContentPadding()
-                    .padding(bottom = 72.dp),
-            ) {
-                androidx.compose.foundation.layout.Box(
-                    modifier = Modifier
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(28.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(AuraPalette.PrimaryGradientStart, AuraPalette.PrimaryGradientEnd)
-                            )
-                        )
-                        .clickable { openSheet(null) }
-                        .padding(horizontal = 22.dp, vertical = 12.dp),
-                ) {
-                    Text(
-                        "⚡ Signaler",
-                        color = AuraPalette.OnPrimary,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        fontSize = 15.sp,
-                    )
-                }
-            }
+            AuraBottomNav(
+                tabs = TABS,
+                selected = selectedTab,
+                onSelect = { selectedTab = it },
+                onActionClick = { openSheet(null) },
+                actionEnabled = currentBattle == null && selectedFriend == null && selectedGroup == null,
+            )
         }
 
         if (showSheet) {

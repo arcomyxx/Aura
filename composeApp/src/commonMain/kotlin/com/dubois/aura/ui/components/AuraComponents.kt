@@ -137,64 +137,139 @@ fun AuraCard(
 }
 
 /**
- * Barre d'onglets segmentée (Profil / Amis / Battle / Classement). Le segment actif
- * porte le dégradé de l'accent (jaune -> orange par défaut).
+ * Barre de navigation du bas style "modern mobile" : icône + label pour chaque
+ * onglet, FAB gradient centré qui remonte au-dessus de la barre. Les 4 onglets
+ * sont répartis 2 à gauche / 2 à droite du FAB.
+ *
+ * [tabs] : liste de (label, icône Unicode), 4 éléments attendus.
+ * [onActionClick] : callback du bouton central (Signaler).
  */
 @Composable
-fun AuraTabBar(
-    tabs: List<String>,
+fun AuraBottomNav(
+    tabs: List<Pair<String, String>>,
     selected: Int,
     onSelect: (Int) -> Unit,
+    onActionClick: () -> Unit,
+    actionEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(AuraPalette.TabTrack)
-            .border(BorderStroke(1.dp, AuraPalette.CardBorder), RoundedCornerShape(28.dp))
-            .padding(5.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    // Hauteur visible de la barre + espace au-dessus pour le FAB.
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.BottomCenter,
     ) {
-        tabs.forEachIndexed { index, label ->
-            TabSegment(
-                label = label,
-                active = index == selected,
-                fontSize = if (tabs.size > 3) 13 else 14,
-                onClick = { onSelect(index) },
-                modifier = Modifier.weight(label.length + 4f),
+        // ─── Barre de fond ──────────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(68.dp)
+                .background(AuraPalette.Surface)
+        ) {
+            // Trait supérieur
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(AuraPalette.CardBorder)
             )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 1.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // 2 onglets de gauche
+                tabs.take(2).forEachIndexed { idx, (label, icon) ->
+                    BottomNavItem(
+                        icon = icon,
+                        label = label,
+                        active = idx == selected,
+                        onClick = { onSelect(idx) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                // Espace réservé pour le FAB
+                androidx.compose.foundation.layout.Spacer(Modifier.weight(1.1f))
+                // 2 onglets de droite
+                tabs.drop(2).forEachIndexed { i, (label, icon) ->
+                    BottomNavItem(
+                        icon = icon,
+                        label = label,
+                        active = (i + 2) == selected,
+                        onClick = { onSelect(i + 2) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+
+        // ─── FAB central ────────────────────────────────────────────────
+        if (actionEnabled) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(bottom = 32.dp)   // remonte au-dessus de la barre
+                    .size(58.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                AuraPalette.PrimaryGradientStart,
+                                AuraPalette.PrimaryGradientEnd,
+                            )
+                        )
+                    )
+                    .border(
+                        BorderStroke(2.dp, AuraPalette.Surface),
+                        CircleShape,
+                    )
+                    .clickable(onClick = onActionClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "⚡",
+                    fontSize = 22.sp,
+                    color = AuraPalette.OnPrimary,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun TabSegment(
+private fun BottomNavItem(
+    icon: String,
     label: String,
     active: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    fontSize: Int = 14,
 ) {
-    val shape = RoundedCornerShape(24.dp)
-    val base = modifier
-        .clip(shape)
-        .height(44.dp)
-        .clickable(onClick = onClick)
-    val filled = if (active) {
-        base.background(
-            Brush.horizontalGradient(
-                listOf(AuraPalette.PrimaryGradientStart, AuraPalette.PrimaryGradientEnd)
-            )
+    val color = if (active) AuraPalette.Primary else AuraPalette.TextMuted
+    val weight = if (active) FontWeight.SemiBold else FontWeight.Normal
+    androidx.compose.foundation.layout.Column(
+        modifier = modifier
+            .height(68.dp)
+            .clickableNoRipple(onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        // Pastille indicateur actif
+        Box(
+            Modifier
+                .size(width = 24.dp, height = 3.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(if (active) AuraPalette.Primary else Color.Transparent)
         )
-    } else base
-    Box(filled, contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.layout.Spacer(
+            Modifier.height(6.dp)
+        )
+        Text(icon, fontSize = 20.sp, color = color)
+        androidx.compose.foundation.layout.Spacer(Modifier.height(3.dp))
         Text(
-            text = label,
-            color = if (active) AuraPalette.OnPrimary else AuraPalette.TextSecondary,
-            fontSize = fontSize.sp,
-            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
-            textAlign = TextAlign.Center,
+            label,
+            fontSize = 10.sp,
+            color = color,
+            fontWeight = weight,
             maxLines = 1,
             softWrap = false,
         )
