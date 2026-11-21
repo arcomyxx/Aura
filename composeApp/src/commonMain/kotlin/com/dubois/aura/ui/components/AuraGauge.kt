@@ -45,6 +45,7 @@ fun AuraGauge(
     modifier: Modifier = Modifier,
     diameter: Int = 200,
     padded: Boolean = true,
+    flame: Boolean = true,
     name: String = "",
     photoBase64: String = "",
 ) {
@@ -54,8 +55,7 @@ fun AuraGauge(
         ((score - tier.minScore).toFloat() / (next.minScore - tier.minScore)).coerceIn(0f, 1f)
     }
 
-    // Réserve la place des flammes au-dessus de la jauge pour qu'elles ne soient pas coupées.
-    val headroom = diameter / 2f * auraHeadroom(score)
+    val headroom = if (flame) diameter / 2f * auraHeadroom(score) else 0f
     val sidePadding = if (padded) 24.dp else 0.dp
 
     if (name.isNotEmpty()) {
@@ -68,7 +68,7 @@ fun AuraGauge(
                 modifier = Modifier
                     .padding(top = headroom.dp, start = sidePadding, end = sidePadding)
                     .size(diameter.dp)
-                    .auraFlame(score),
+                    .then(if (flame) Modifier.auraFlame(score) else Modifier),
                 contentAlignment = Alignment.Center,
             ) {
                 // Avatar remplit le cercle (légèrement plus petit pour laisser l'arc visible)
@@ -136,10 +136,11 @@ fun AuraGauge(
             modifier = modifier
                 .then(
                     if (padded) Modifier.padding(top = headroom.dp, start = 24.dp, end = 24.dp)
-                    else Modifier.padding(top = headroom.dp)
+                    else if (headroom > 0f) Modifier.padding(top = headroom.dp)
+                    else Modifier
                 )
                 .size(diameter.dp)
-                .auraFlame(score),
+                .then(if (flame) Modifier.auraFlame(score) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             Canvas(Modifier.size(diameter.dp)) {
