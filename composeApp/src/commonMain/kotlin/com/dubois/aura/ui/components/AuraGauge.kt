@@ -46,6 +46,7 @@ fun AuraGauge(
     diameter: Int = 200,
     padded: Boolean = true,
     flame: Boolean = true,
+    arc: Boolean = true,
     name: String = "",
     photoBase64: String = "",
 ) {
@@ -79,7 +80,7 @@ fun AuraGauge(
                     photoBase64 = photoBase64,
                 )
                 // Arc de progression par-dessus les bords de l'avatar
-                Canvas(Modifier.size(diameter.dp)) {
+                if (arc) Canvas(Modifier.size(diameter.dp)) {
                     val stroke = size.minDimension * 0.055f
                     val inset = stroke / 2
                     val arcSize = Size(size.width - inset * 2, size.height - inset * 2)
