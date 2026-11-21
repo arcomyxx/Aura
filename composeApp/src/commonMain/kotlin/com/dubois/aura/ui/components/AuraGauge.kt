@@ -72,11 +72,10 @@ fun AuraGauge(
                     .then(if (flame) Modifier.auraFlame(score) else Modifier),
                 contentAlignment = Alignment.Center,
             ) {
-                // Avatar remplit le cercle (légèrement plus petit pour laisser l'arc visible)
                 InitialsAvatar(
                     name = name,
                     ringColor = tierColor,
-                    size = (diameter * 0.82f).toInt(),
+                    size = if (arc) (diameter * 0.82f).toInt() else diameter,
                     photoBase64 = photoBase64,
                 )
                 // Arc de progression par-dessus les bords de l'avatar
