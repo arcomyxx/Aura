@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -84,7 +85,6 @@ fun ProfileTab(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 28.dp)
-                    .offset(y = (-20).dp)
                     .drawBehind {
                         // Halo extérieur très large
                         val rOuter = size.width * 1.05f

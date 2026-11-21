@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -145,6 +146,7 @@ fun AuraGauge(
             contentAlignment = Alignment.Center,
         ) {
             Canvas(Modifier.size(diameter.dp)) {
+                translate(top = size.minDimension * 0.08f) {
                 scale(0.82f) {
                 val stroke = size.minDimension * 0.045f
                 val inset = stroke * 2
@@ -208,6 +210,7 @@ fun AuraGauge(
                     style = Stroke(width = 1.dp.toPx()),
                 )
                 } // end scale
+                } // end translate
             }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
