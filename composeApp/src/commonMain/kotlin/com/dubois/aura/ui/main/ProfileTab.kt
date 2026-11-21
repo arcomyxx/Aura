@@ -84,27 +84,37 @@ fun ProfileTab(
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {
-                        // Halo extérieur large et doux
-                        val rOuter = size.width * 0.90f
+                        // Halo extérieur très large
+                        val rOuter = size.width * 1.05f
                         drawCircle(
                             brush = Brush.radialGradient(
-                                0.0f to tierColor.copy(alpha = 0.22f),
-                                0.50f to tierColor.copy(alpha = 0.08f),
+                                0.0f to tierColor.copy(alpha = 0.38f),
+                                0.45f to tierColor.copy(alpha = 0.14f),
                                 1.0f to Color.Transparent,
                                 radius = rOuter,
                             ),
                             radius = rOuter,
                         )
-                        // Halo intérieur plus intense
-                        val rInner = size.width * 0.52f
+                        // Halo intermédiaire
+                        val rMid = size.width * 0.65f
                         drawCircle(
                             brush = Brush.radialGradient(
-                                0.0f to tierColor.copy(alpha = 0.55f),
-                                0.45f to tierColor.copy(alpha = 0.22f),
+                                0.0f to tierColor.copy(alpha = 0.60f),
+                                0.50f to tierColor.copy(alpha = 0.18f),
                                 1.0f to Color.Transparent,
-                                radius = rInner,
+                                radius = rMid,
                             ),
-                            radius = rInner,
+                            radius = rMid,
+                        )
+                        // Noyau très intense
+                        val rCore = size.width * 0.30f
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                0.0f to tierColor.copy(alpha = 0.80f),
+                                1.0f to Color.Transparent,
+                                radius = rCore,
+                            ),
+                            radius = rCore,
                         )
                     },
             ) {
