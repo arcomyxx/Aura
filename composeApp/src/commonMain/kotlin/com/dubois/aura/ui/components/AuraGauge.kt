@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -87,13 +88,22 @@ fun AuraGauge(
                         topLeft = topLeft, size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Round),
                     )
-                    // Progression
-                    drawArc(
-                        brush = Brush.sweepGradient(listOf(Color(0xFFFFE680), tierColor, tierColor)),
-                        startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
-                        topLeft = topLeft, size = arcSize,
-                        style = Stroke(width = stroke, cap = StrokeCap.Round),
-                    )
+                    // Progression avec dégradé aligné sur le début de l'arc
+                    rotate(-90f) {
+                        drawArc(
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    tierColor.copy(alpha = 0.15f),
+                                    tierColor.copy(alpha = 0.55f),
+                                    tierColor,
+                                    tierColor,
+                                )
+                            ),
+                            startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
+                            topLeft = topLeft, size = arcSize,
+                            style = Stroke(width = stroke, cap = StrokeCap.Round),
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(6.dp))
@@ -146,12 +156,21 @@ fun AuraGauge(
                     topLeft = topLeft, size = arcSize,
                     style = Stroke(width = stroke, cap = StrokeCap.Round),
                 )
-                drawArc(
-                    brush = Brush.sweepGradient(listOf(Color(0xFFFFE680), tierColor, tierColor)),
-                    startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
-                    topLeft = topLeft, size = arcSize,
-                    style = Stroke(width = stroke, cap = StrokeCap.Round),
-                )
+                rotate(-90f) {
+                    drawArc(
+                        brush = Brush.sweepGradient(
+                            listOf(
+                                tierColor.copy(alpha = 0.15f),
+                                tierColor.copy(alpha = 0.55f),
+                                tierColor,
+                                tierColor,
+                            )
+                        ),
+                        startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
+                        topLeft = topLeft, size = arcSize,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
+                }
                 drawCircle(
                     color = tierColor.copy(alpha = 0.25f),
                     radius = size.minDimension * 0.34f,
