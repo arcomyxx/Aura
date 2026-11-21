@@ -88,19 +88,19 @@ fun AuraGauge(
                         topLeft = topLeft, size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Round),
                     )
-                    // Progression : transparent→opaque, la piste grise en dessous crée l'effet gris→jaune
+                    // Progression : gris→couleur du tier, sans cap arrondi au départ
                     rotate(-90f) {
                         drawArc(
                             brush = Brush.sweepGradient(
                                 colorStops = arrayOf(
-                                    0f to tierColor.copy(alpha = 0f),
+                                    0f to AuraPalette.SurfaceElevated,
                                     progress.coerceAtLeast(0.01f) to tierColor,
                                     1f to tierColor,
                                 )
                             ),
                             startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                             topLeft = topLeft, size = arcSize,
-                            style = Stroke(width = stroke, cap = StrokeCap.Round),
+                            style = Stroke(width = stroke, cap = StrokeCap.Butt),
                         )
                     }
                 }
@@ -155,19 +155,19 @@ fun AuraGauge(
                     topLeft = topLeft, size = arcSize,
                     style = Stroke(width = stroke, cap = StrokeCap.Round),
                 )
-                // Progression : transparent→opaque, la piste grise en dessous crée l'effet gris→jaune
+                // Progression : gris→couleur du tier, sans cap arrondi au départ
                 rotate(-90f) {
                     drawArc(
                         brush = Brush.sweepGradient(
                             colorStops = arrayOf(
-                                0f to tierColor.copy(alpha = 0f),
+                                0f to AuraPalette.SurfaceElevated,
                                 progress.coerceAtLeast(0.01f) to tierColor,
                                 1f to tierColor,
                             )
                         ),
                         startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                         topLeft = topLeft, size = arcSize,
-                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                        style = Stroke(width = stroke, cap = StrokeCap.Butt),
                     )
                 }
                 drawCircle(
