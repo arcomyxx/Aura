@@ -87,15 +87,16 @@ private fun PodiumBlock(top: List<RankedUser>) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom,
             ) {
-                if (user != null) {
-                    // Trophée au-dessus du 1er
-                    if (ranks[i] == 1) {
-                        Text("🏆", fontSize = 22.sp)
-                        Spacer(Modifier.height(2.dp))
-                    } else {
-                        Spacer(Modifier.height(24.dp))
-                    }
+                // Trophée au-dessus du 1er (ou spacer pour aligner)
+                if (ranks[i] == 1) {
+                    if (user != null) Text("🏆", fontSize = 22.sp)
+                    else Spacer(Modifier.height(22.dp))
+                    Spacer(Modifier.height(2.dp))
+                } else {
+                    Spacer(Modifier.height(24.dp))
+                }
 
+                if (user != null) {
                     // Avatar avec anneau tier
                     InitialsAvatar(
                         name = user.profile.displayName,
@@ -132,8 +133,32 @@ private fun PodiumBlock(top: List<RankedUser>) {
                             fontSize = 11.sp,
                         )
                     }
-                    Spacer(Modifier.height(10.dp))
+                } else {
+                    // Placeholder place vide
+                    Box(
+                        modifier = Modifier
+                            .size(avatarSizes[i].dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(AuraPalette.SurfaceElevated)
+                            .border(1.5.dp, AuraPalette.CardBorder, androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("?", color = AuraPalette.TextMuted, fontWeight = FontWeight.Bold, fontSize = (avatarSizes[i] * 0.4f).sp)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text("—", color = AuraPalette.TextMuted, fontSize = 12.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(AuraPalette.SurfaceElevated)
+                            .border(1.dp, AuraPalette.CardBorder, RoundedCornerShape(10.dp))
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    ) {
+                        Text("—", color = AuraPalette.TextMuted, fontSize = 11.sp)
+                    }
                 }
+                Spacer(Modifier.height(10.dp))
 
                 // Marche du podium
                 Box(
