@@ -88,16 +88,11 @@ fun AuraGauge(
                         topLeft = topLeft, size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Round),
                     )
-                    // Progression avec dégradé aligné sur le début de l'arc
+                    // Progression : gris → couleur du tier
                     rotate(-90f) {
                         drawArc(
                             brush = Brush.sweepGradient(
-                                listOf(
-                                    tierColor.copy(alpha = 0.15f),
-                                    tierColor.copy(alpha = 0.55f),
-                                    tierColor,
-                                    tierColor,
-                                )
+                                listOf(AuraPalette.SurfaceElevated, tierColor, tierColor)
                             ),
                             startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                             topLeft = topLeft, size = arcSize,
@@ -156,15 +151,11 @@ fun AuraGauge(
                     topLeft = topLeft, size = arcSize,
                     style = Stroke(width = stroke, cap = StrokeCap.Round),
                 )
+                // Progression : gris → couleur du tier
                 rotate(-90f) {
                     drawArc(
                         brush = Brush.sweepGradient(
-                            listOf(
-                                tierColor.copy(alpha = 0.15f),
-                                tierColor.copy(alpha = 0.55f),
-                                tierColor,
-                                tierColor,
-                            )
+                            listOf(AuraPalette.SurfaceElevated, tierColor, tierColor)
                         ),
                         startAngle = 0f, sweepAngle = 360f * progress, useCenter = false,
                         topLeft = topLeft, size = arcSize,
