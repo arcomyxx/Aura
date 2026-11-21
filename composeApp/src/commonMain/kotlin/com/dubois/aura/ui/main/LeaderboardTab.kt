@@ -66,13 +66,9 @@ fun LeaderboardTab(
 
 @Composable
 private fun PodiumBlock(top: List<RankedUser>) {
-    // Disposition : 2e à gauche, 1er au centre, 3e à droite
-    val slots: List<RankedUser?> = when (top.size) {
-        1 -> listOf(null, top[0], null)
-        2 -> listOf(top[1], top[0], null)
-        else -> listOf(top[1], top[0], top[2])
-    }
-    val blockHeights = listOf(90, 130, 70)   // hauteurs 2e / 1er / 3e
+    // Toujours 3 slots : 2e à gauche, 1er au centre, 3e à droite
+    val slots: List<RankedUser?> = listOf(top.getOrNull(1), top.getOrNull(0), top.getOrNull(2))
+    val blockHeights = listOf(90, 130, 70)
     val ranks = listOf(2, 1, 3)
     val avatarSizes = listOf(48, 60, 44)
 
@@ -87,17 +83,14 @@ private fun PodiumBlock(top: List<RankedUser>) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom,
             ) {
-                // Trophée au-dessus du 1er (ou spacer pour aligner)
                 if (ranks[i] == 1) {
-                    if (user != null) Text("🏆", fontSize = 22.sp)
-                    else Spacer(Modifier.height(22.dp))
+                    if (user != null) Text("🏆", fontSize = 22.sp) else Spacer(Modifier.height(22.dp))
                     Spacer(Modifier.height(2.dp))
                 } else {
                     Spacer(Modifier.height(24.dp))
                 }
 
                 if (user != null) {
-                    // Avatar avec anneau tier
                     InitialsAvatar(
                         name = user.profile.displayName,
                         ringColor = user.tier.color,
@@ -105,8 +98,6 @@ private fun PodiumBlock(top: List<RankedUser>) {
                         auraScore = user.profile.auraScore,
                     )
                     Spacer(Modifier.height(6.dp))
-
-                    // Prénom
                     Text(
                         text = user.profile.displayName.split(" ").first(),
                         color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary,
@@ -117,8 +108,6 @@ private fun PodiumBlock(top: List<RankedUser>) {
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(4.dp))
-
-                    // Badge score
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
@@ -134,54 +123,53 @@ private fun PodiumBlock(top: List<RankedUser>) {
                         )
                     }
                 } else {
-                    // Placeholder place vide
                     Box(
                         modifier = Modifier
                             .size(avatarSizes[i].dp)
                             .clip(androidx.compose.foundation.shape.CircleShape)
-                            .background(AuraPalette.SurfaceElevated)
+                            .background(AuraPalette.SurfaceElevated.copy(alpha = 0.4f))
                             .border(1.5.dp, AuraPalette.CardBorder, androidx.compose.foundation.shape.CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("?", color = AuraPalette.TextMuted, fontWeight = FontWeight.Bold, fontSize = (avatarSizes[i] * 0.4f).sp)
+                        Text(
+                            text = ranks[i].toString(),
+                            color = AuraPalette.TextMuted.copy(alpha = 0.5f),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = (avatarSizes[i] * 0.4f).sp,
+                        )
                     }
                     Spacer(Modifier.height(6.dp))
-                    Text("—", color = AuraPalette.TextMuted, fontSize = 12.sp)
+                    Text("—", color = AuraPalette.TextMuted.copy(alpha = 0.5f), fontSize = 12.sp)
                     Spacer(Modifier.height(4.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .background(AuraPalette.SurfaceElevated)
-                            .border(1.dp, AuraPalette.CardBorder, RoundedCornerShape(10.dp))
+                            .background(AuraPalette.SurfaceElevated.copy(alpha = 0.3f))
+                            .border(1.dp, AuraPalette.CardBorder.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
                             .padding(horizontal = 8.dp, vertical = 2.dp),
                     ) {
-                        Text("—", color = AuraPalette.TextMuted, fontSize = 11.sp)
+                        Text("—", color = AuraPalette.TextMuted.copy(alpha = 0.4f), fontSize = 11.sp)
                     }
                 }
                 Spacer(Modifier.height(10.dp))
 
-                // Marche du podium
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(blockHeights[i].dp)
                         .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
                         .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    AuraPalette.SurfaceElevated,
-                                    AuraPalette.Surface.copy(alpha = 0.5f),
-                                )
-                            )
+                            Brush.verticalGradient(listOf(
+                                AuraPalette.SurfaceElevated.copy(alpha = if (user != null) 1f else 0.5f),
+                                AuraPalette.Surface.copy(alpha = if (user != null) 0.5f else 0.2f),
+                            ))
                         )
                         .border(
                             width = 1.dp,
-                            brush = Brush.verticalGradient(
-                                listOf(
-                                    Color.White.copy(alpha = 0.12f),
-                                    Color.Transparent,
-                                )
-                            ),
+                            brush = Brush.verticalGradient(listOf(
+                                Color.White.copy(alpha = if (user != null) 0.18f else 0.08f),
+                                Color.White.copy(alpha = if (user != null) 0.04f else 0.02f),
+                            )),
                             shape = RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp),
                         ),
                     contentAlignment = Alignment.Center,

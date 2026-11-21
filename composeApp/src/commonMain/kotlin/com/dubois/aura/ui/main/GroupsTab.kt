@@ -1,6 +1,7 @@
 package com.dubois.aura.ui.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -462,36 +463,45 @@ fun GroupDetailScreen(
 
 @Composable
 private fun GlobalPodiumBlock(top: List<com.dubois.aura.model.RankedUser>) {
-    val order = when (top.size) {
-        1 -> listOf(top[0])
-        2 -> listOf(top[1], top[0])
-        else -> listOf(top[1], top[0], top[2])
-    }
-    val heights = when (top.size) { 1 -> listOf(60); 2 -> listOf(44, 60); else -> listOf(44, 60, 36) }
+    // Toujours 3 slots : 2e à gauche, 1er au centre, 3e à droite
+    val second = top.getOrNull(1)
+    val first  = top.getOrNull(0)
+    val third  = top.getOrNull(2)
+    val heights = listOf(44, 60, 36)
     val medals = listOf("🥈", "🥇", "🥉")
     val podiumColors = listOf(
         androidx.compose.ui.graphics.Color(0xFFB0BEC5),
         androidx.compose.ui.graphics.Color(0xFFFFD700),
         androidx.compose.ui.graphics.Color(0xFFCD7F32),
     )
+    val slots = listOf(second, first, third)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
-        order.forEachIndexed { i, user ->
-            val tierColor = user.tier.color
+        slots.forEachIndexed { i, user ->
             val medalColor = podiumColors[i]
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                AuraGauge(score = user.profile.auraScore, tierColor = tierColor, diameter = if (i == 1) 86 else 70, name = user.profile.displayName, photoBase64 = user.profile.photoUrl)
-                Text(user.profile.displayName.split(" ").first(), color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, maxLines = 1)
+                if (user != null) {
+                    AuraGauge(score = user.profile.auraScore, tierColor = user.tier.color, diameter = if (i == 1) 86 else 70, name = user.profile.displayName, photoBase64 = user.profile.photoUrl)
+                    Text(user.profile.displayName.split(" ").first(), color = if (user.isMe) AuraPalette.Primary else AuraPalette.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, maxLines = 1)
+                } else {
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier.size(if (i == 1) 86.dp else 70.dp).clip(androidx.compose.foundation.shape.CircleShape).background(AuraPalette.SurfaceElevated.copy(alpha = 0.4f)).border(1.dp, AuraPalette.CardBorder, androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("—", color = AuraPalette.TextMuted.copy(alpha = 0.5f), fontSize = 18.sp) }
+                    Text("—", color = AuraPalette.TextMuted.copy(alpha = 0.4f), fontWeight = FontWeight.SemiBold, fontSize = 11.sp, maxLines = 1)
+                }
                 Spacer(Modifier.height(4.dp))
                 androidx.compose.foundation.layout.Box(
                     modifier = Modifier.fillMaxWidth().height(heights[i].dp).clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(medalColor.copy(alpha = 0.55f), medalColor.copy(alpha = 0.12f)))),
+                        .background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(medalColor.copy(alpha = if (user != null) 0.55f else 0.30f), medalColor.copy(alpha = if (user != null) 0.12f else 0.06f))
+                        )).border(1.dp, medalColor.copy(alpha = if (user != null) 0.3f else 0.15f), RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)),
                     contentAlignment = Alignment.TopCenter,
                 ) { Text(medals[i], fontSize = 16.sp, modifier = Modifier.padding(top = 6.dp)) }
             }
@@ -527,49 +537,51 @@ private fun GlobalLeaderboardRow(user: com.dubois.aura.model.RankedUser) {
 
 @Composable
 private fun GroupPodiumBlock(top: List<GroupMember>, myUid: String?) {
-    val order = when (top.size) {
-        1 -> listOf(top[0])
-        2 -> listOf(top[1], top[0])
-        else -> listOf(top[1], top[0], top[2])
-    }
-    val heights = when (top.size) {
-        1 -> listOf(80)
-        2 -> listOf(60, 80)
-        else -> listOf(60, 80, 50)
-    }
+    // Toujours 3 slots : 2e à gauche, 1er au centre, 3e à droite
+    val second = top.getOrNull(1)
+    val first  = top.getOrNull(0)
+    val third  = top.getOrNull(2)
+    val slots = listOf(second, first, third)
+    val heights = listOf(60, 80, 50)
     val medals = listOf("🥈", "🥇", "🥉")
-    // ordre d'affichage [2e, 1er, 3e] → couleurs de podium correspondantes
     val podiumColors = listOf(
-        androidx.compose.ui.graphics.Color(0xFFB0BEC5), // argent
-        androidx.compose.ui.graphics.Color(0xFFFFD700), // or
-        androidx.compose.ui.graphics.Color(0xFFCD7F32), // bronze
+        androidx.compose.ui.graphics.Color(0xFFB0BEC5),
+        androidx.compose.ui.graphics.Color(0xFFFFD700),
+        androidx.compose.ui.graphics.Color(0xFFCD7F32),
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
-        order.forEachIndexed { i, member ->
-            val tierColor = member.tier.color
+        slots.forEachIndexed { i, member ->
             val medalColor = podiumColors[i]
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                AuraGauge(
-                    score = member.groupAuraScore,
-                    tierColor = tierColor,
-                    diameter = if (i == 1) 86 else 70,
-                    name = member.displayName,
-                    photoBase64 = member.photoUrl,
-                )
-                Text(
-                    text = member.displayName.split(" ").first(),
-                    color = if (member.uid == myUid) AuraPalette.Primary else AuraPalette.TextPrimary,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                )
+                if (member != null) {
+                    AuraGauge(
+                        score = member.groupAuraScore,
+                        tierColor = member.tier.color,
+                        diameter = if (i == 1) 86 else 70,
+                        name = member.displayName,
+                        photoBase64 = member.photoUrl,
+                    )
+                    Text(
+                        text = member.displayName.split(" ").first(),
+                        color = if (member.uid == myUid) AuraPalette.Primary else AuraPalette.TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                    )
+                } else {
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier.size(if (i == 1) 86.dp else 70.dp).clip(androidx.compose.foundation.shape.CircleShape).background(AuraPalette.SurfaceElevated.copy(alpha = 0.4f)).border(1.dp, AuraPalette.CardBorder, androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("—", color = AuraPalette.TextMuted.copy(alpha = 0.5f), fontSize = 18.sp) }
+                    Text("—", color = AuraPalette.TextMuted.copy(alpha = 0.4f), fontWeight = FontWeight.SemiBold, fontSize = 12.sp, maxLines = 1)
+                }
                 Spacer(Modifier.height(6.dp))
                 androidx.compose.foundation.layout.Box(
                     modifier = Modifier
@@ -578,9 +590,9 @@ private fun GroupPodiumBlock(top: List<GroupMember>, myUid: String?) {
                         .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                         .background(
                             androidx.compose.ui.graphics.Brush.verticalGradient(
-                                listOf(medalColor.copy(alpha = 0.55f), medalColor.copy(alpha = 0.12f))
+                                listOf(medalColor.copy(alpha = if (member != null) 0.55f else 0.30f), medalColor.copy(alpha = if (member != null) 0.12f else 0.06f))
                             )
-                        ),
+                        ).border(1.dp, medalColor.copy(alpha = if (member != null) 0.3f else 0.15f), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
                     contentAlignment = Alignment.TopCenter,
                 ) {
                     Text(medals[i], fontSize = 20.sp, modifier = Modifier.padding(top = 8.dp))
