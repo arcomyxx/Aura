@@ -76,7 +76,7 @@ fun ProfileTab(
     ) {
         item {
             Spacer(Modifier.height(8.dp))
-            AuraGauge(score = me?.profile?.auraScore ?: 0, tierColor = tierColor)
+            AuraGauge(score = me?.profile?.auraScore ?: 0, tierColor = tierColor, diameter = 240)
             Spacer(Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
