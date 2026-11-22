@@ -144,6 +144,16 @@ service cloud.firestore {
       }
     }
 
+    // Liens d'invitation de groupe : tout utilisateur connecté peut lire un
+    // lien (token = UUID opaque non devinable). Seul un utilisateur connecté
+    // peut créer un lien pour un groupe dont il est créateur (createdBy).
+    // Pas de modification ni suppression depuis le client.
+    match /groupLinks/{token} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.createdBy == request.auth.uid;
+    }
+
     // Invitations de groupe : lisibles par l'expéditeur ou le destinataire.
     // Créée par un membre du groupe concerné (fromUid = appelant).
     // Mise à jour (acceptation/refus) par le destinataire uniquement.
