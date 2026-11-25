@@ -41,8 +41,7 @@ fun shareBattleCard(
 
 fun shareGroupInvite(context: Context, groupName: String, token: String) {
     val text = "Rejoins mon groupe \"$groupName\" sur Aura 🔥\n\n" +
-        "Ouvre ce lien si tu as l'app :\naura://join/$token\n\n" +
-        "Sans l'app, télécharge Aura :\nhttps://play.google.com/store/apps/details?id=com.dubois.aura"
+        "https://aura-7d0fb.web.app/join/$token"
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, text)

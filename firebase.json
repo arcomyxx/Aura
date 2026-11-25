@@ -5,5 +5,12 @@
   "functions": {
     "source": "functions",
     "runtime": "nodejs22"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*"],
+    "rewrites": [
+      { "source": "/join/**", "destination": "/join/index.html" }
+    ]
   }
 }
