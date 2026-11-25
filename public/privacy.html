@@ -1,0 +1,293 @@
+<title>Politique de confidentialité — Aura</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap">
+
+<style>
+  /* Layout : document centré, lecture confortable */
+  :root {
+    --bg: #0d0d12;
+    --surface: #16161f;
+    --border: #2a2a3a;
+    --fg: #e8e8f0;
+    --muted: #8888a8;
+    --accent: #c6a84b;
+    --accent-dim: rgba(198,168,75,.12);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e0ddd6;
+      --fg: #1a1a28;
+      --muted: #6b6b88;
+      --accent: #a8872e;
+      --accent-dim: rgba(168,135,46,.10);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --border: #e0ddd6;
+    --fg: #1a1a28;
+    --muted: #6b6b88;
+    --accent: #a8872e;
+    --accent-dim: rgba(168,135,46,.10);
+    color-scheme: light;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0 3rem;
+  }
+
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  header {
+    padding: 3rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-family: 'DM Serif Display', serif;
+    color: var(--accent);
+  }
+
+  .logo-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--fg);
+    letter-spacing: .02em;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0 0 .75rem;
+    text-wrap: balance;
+    color: var(--fg);
+  }
+
+  .meta {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Sections */
+  section {
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--accent);
+    margin: 0 0 .75rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  p {
+    margin: 0 0 1rem;
+    color: var(--fg);
+  }
+
+  ul {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+  }
+
+  li {
+    margin-bottom: .4rem;
+    color: var(--fg);
+  }
+
+  /* Highlight box */
+  .highlight {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: 15px;
+  }
+
+  .highlight strong {
+    color: var(--accent);
+  }
+
+  /* Contact */
+  .contact-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .contact-block p {
+    margin: 0;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  strong {
+    color: var(--fg);
+    font-weight: 600;
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">✦</div>
+      <span class="logo-name">Aura</span>
+    </div>
+    <h1>Politique de confidentialité</h1>
+    <p class="meta">Dernière mise à jour : novembre 2026 · Application mobile Aura (<code>com.dubois.aura</code>)</p>
+  </header>
+
+  <section>
+    <div class="highlight">
+      <strong>En bref</strong> — Aura collecte uniquement les données nécessaires à son fonctionnement. Nous ne vendons aucune donnée à des tiers. Vous pouvez supprimer votre compte et toutes vos données à tout moment depuis l'application.
+    </div>
+  </section>
+
+  <section>
+    <h2>1. Qui sommes-nous ?</h2>
+    <p>Aura est une application mobile sociale développée par Thibault Dubois, en tant que développeur indépendant. Pour toute question relative à la confidentialité, contactez-nous à l'adresse indiquée en fin de document.</p>
+  </section>
+
+  <section>
+    <h2>2. Données collectées</h2>
+    <p>Nous collectons les données suivantes :</p>
+    <ul>
+      <li><strong>Compte</strong> : adresse e-mail et mot de passe (gérés par Firebase Authentication)</li>
+      <li><strong>Profil public</strong> : nom d'affichage, photo de profil (optionnelle), biographie (optionnelle), score d'aura</li>
+      <li><strong>Activité</strong> : événements d'aura envoyés et reçus, groupes rejoints, demandes d'amis</li>
+      <li><strong>Technique</strong> : token de notification push (FCM) pour recevoir des notifications, journaux de crash anonymisés (Crashlytics)</li>
+    </ul>
+    <p>Nous ne collectons pas : données de localisation, contacts téléphoniques, historique de navigation, ni aucune donnée de santé.</p>
+  </section>
+
+  <section>
+    <h2>3. Finalités du traitement</h2>
+    <ul>
+      <li>Fournir et faire fonctionner le service (authentification, profils, scores, groupes)</li>
+      <li>Envoyer des notifications push relatives à l'activité de votre compte</li>
+      <li>Détecter et corriger les bugs via des rapports de crash anonymisés</li>
+      <li>Prévenir les abus et garantir l'intégrité du jeu (limites anti-spam)</li>
+    </ul>
+    <p>Base légale : exécution du contrat (fonctionnement du service) et intérêt légitime (sécurité et anti-abus).</p>
+  </section>
+
+  <section>
+    <h2>4. Hébergement et sous-traitants</h2>
+    <p>Les données sont hébergées par <strong>Google Firebase</strong> (Google LLC), sur des serveurs situés en Europe (région <code>europe-west</code>). Google agit en tant que sous-traitant au sens du RGPD.</p>
+    <p>Sous-traitants utilisés :</p>
+    <ul>
+      <li>Firebase Authentication — gestion des comptes</li>
+      <li>Cloud Firestore — base de données</li>
+      <li>Firebase Cloud Messaging — notifications push</li>
+      <li>Firebase Crashlytics — rapports de crash anonymisés</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>5. Partage des données</h2>
+    <p>Certaines données de profil sont visibles par les autres utilisateurs de l'application (nom d'affichage, photo, score d'aura, événements reçus). <strong>Nous ne vendons, ne louons ni ne partageons vos données personnelles avec des tiers à des fins commerciales.</strong></p>
+  </section>
+
+  <section>
+    <h2>6. Durée de conservation</h2>
+    <p>Vos données sont conservées tant que votre compte est actif. En cas de suppression du compte, vos données personnelles (profil, événements, groupes) sont supprimées dans un délai de 30 jours. Les journaux de crash anonymisés sont conservés 90 jours par Crashlytics.</p>
+  </section>
+
+  <section>
+    <h2>7. Vos droits (RGPD)</h2>
+    <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :</p>
+    <ul>
+      <li><strong>Accès</strong> : consulter les données que nous détenons sur vous</li>
+      <li><strong>Rectification</strong> : corriger vos données depuis votre profil dans l'application</li>
+      <li><strong>Suppression</strong> : supprimer votre compte et toutes vos données depuis l'application (Profil → ⋯ → Supprimer le compte)</li>
+      <li><strong>Opposition</strong> : vous opposer à certains traitements</li>
+      <li><strong>Portabilité</strong> : recevoir vos données dans un format lisible par machine</li>
+    </ul>
+    <p>Pour exercer ces droits, contactez-nous par e-mail. Vous pouvez également introduire une réclamation auprès de la <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.</p>
+  </section>
+
+  <section>
+    <h2>8. Notifications push</h2>
+    <p>L'application peut envoyer des notifications push pour vous informer de l'activité sur votre compte. Vous pouvez désactiver ces notifications à tout moment depuis les paramètres de votre appareil.</p>
+  </section>
+
+  <section>
+    <h2>9. Mineurs</h2>
+    <p>Aura est destinée à un public général. Nous ne collectons pas sciemment de données relatives à des enfants de moins de 13 ans. Si vous pensez qu'un mineur a créé un compte, contactez-nous pour que nous supprimions ces données.</p>
+  </section>
+
+  <section>
+    <h2>10. Contact</h2>
+    <div class="contact-block">
+      <p>Pour toute question relative à la présente politique ou pour exercer vos droits :</p>
+      <p style="margin-top:.75rem"><strong>Thibault Dubois</strong><br>
+      E-mail : <strong>arcomyxx@gmail.com</strong></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Aura · <a href="/privacy">Politique de confidentialité</a></p>
+  </footer>
+</div>
