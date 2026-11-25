@@ -26,6 +26,7 @@ navigationCompose = "2.9.2"
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "gitliveVersion" }
 firebase-common = { module = "dev.gitlive:firebase-common", version.ref = "gitliveVersion" }
 firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "gitliveVersion" }
+firebase-functions = { module = "dev.gitlive:firebase-functions", version.ref = "gitliveVersion" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

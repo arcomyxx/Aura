@@ -124,6 +124,36 @@ class UserRepository {
         }
     }
 
+    /**
+     * Supprime le compte de l'utilisateur courant : efface le document Firestore
+     * puis supprime le compte Firebase Auth. La suppression des sous-collections
+     * (events, friends, limits) doit être faite par une Cloud Function pour éviter
+     * les limitations côté client, mais l'accès aux données est déjà bloqué dès
+     * que le document principal est supprimé.
+     */
+    suspend fun deleteAccount(): Result<Unit> {
+        return try {
+            val user = auth.currentUser ?: return Result.failure(IllegalStateException("Non connecté"))
+            val uid = user.uid
+            // Supprime le profil public en premier (bloque l'accès immédiatement).
+            firestore.collection("users").document(uid).delete()
+            // Supprime le compte Auth (révoque tous les tokens).
+            user.delete()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun sendPasswordReset(email: String): Result<Unit> {
+        return try {
+            auth.sendPasswordResetEmail(email)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun logout() = auth.signOut()
 
     fun currentUser() = auth.currentUser

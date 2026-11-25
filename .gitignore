@@ -17,3 +17,8 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# Fichiers de configuration Firebase (contiennent des clés côté client —
+# ne doivent pas circuler dans un dépôt public)
+google-services.json
+GoogleService-Info.plist

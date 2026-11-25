@@ -18,6 +18,9 @@ class UserViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _resetEmailSent = MutableStateFlow(false)
+    val resetEmailSent: StateFlow<Boolean> = _resetEmailSent
+
     fun register(email: String, password: String, name: String) {
         viewModelScope.launch {
             repo.register(email, password, name)
@@ -56,6 +59,25 @@ class UserViewModel : ViewModel() {
                         displayName = name, bio = bio, photoUrl = photoUrl, themeColor = themeColor,
                     )
                 }
+                .onFailure { _error.value = it.message }
+        }
+    }
+
+    fun deleteAccount(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            repo.deleteAccount()
+                .onSuccess {
+                    _profile.value = null
+                    onSuccess()
+                }
+                .onFailure { _error.value = it.message }
+        }
+    }
+
+    fun sendPasswordReset(email: String) {
+        viewModelScope.launch {
+            repo.sendPasswordReset(email.trim())
+                .onSuccess { _resetEmailSent.value = true; _error.value = null }
                 .onFailure { _error.value = it.message }
         }
     }

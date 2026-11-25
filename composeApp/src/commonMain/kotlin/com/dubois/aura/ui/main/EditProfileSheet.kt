@@ -34,8 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dubois.aura.model.UserProfile
@@ -73,6 +75,7 @@ fun EditProfileSheetContent(
     var photo by remember { mutableStateOf(profile?.photoUrl ?: "") }
     var themeHex by remember { mutableStateOf(profile?.themeColor ?: "") }
     var processing by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     val accent = colorFromHex(themeHex) ?: AuraPalette.DefaultAccent
 
@@ -244,6 +247,16 @@ fun EditProfileSheetContent(
         ) {
             Text("Enregistrer", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
         }
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Politique de confidentialité · Mentions légales",
+            color = AuraPalette.TextMuted,
+            fontSize = 11.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickableNoRipple { uriHandler.openUri("https://aura-7d0fb.web.app/privacy") },
+        )
     }
 }
 

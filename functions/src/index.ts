@@ -243,6 +243,143 @@ export const onFriendRequestAccepted = functions.firestore.onDocumentUpdated(
   },
 );
 
+// ── Signalement d'événement (callable) ───────────────────────────────────────
+// Remplace la logique côté client : valide les limites anti-abus côté serveur,
+// écrit l'événement et incrémente les scores de manière atomique.
+
+const MAX_POSITIVES_PER_DAY = 3;
+const MAX_NEGATIVES_PER_DAY = 1;
+const MAX_REWARD_PER_DAY = 10;
+const MAX_LOSS_PER_DAY = 50;
+const REPORTER_REWARD = 2;
+
+const RARITY_COOLDOWN_MS: Record<string, number> = {
+  COMMON: 12 * 3_600_000,
+  RARE: 24 * 3_600_000,
+  LEGENDARY: 168 * 3_600_000,
+};
+
+function todayUtc(): string {
+  const d = new Date();
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+export const reportEvent = functions.https.onCall(async (request) => {
+  const auth = request.auth;
+  if (!auth) throw new functions.https.HttpsError("unauthenticated", "Non authentifié");
+
+  const { targetUid, typeId, emoji, label, delta, description, rarity } = request.data as {
+    targetUid: string;
+    typeId: string;
+    emoji: string;
+    label: string;
+    delta: number;
+    description: string;
+    rarity: string;
+  };
+
+  const myUid = auth.uid;
+  if (!targetUid || targetUid === myUid)
+    throw new functions.https.HttpsError("invalid-argument", "Cible invalide");
+
+  const isPositive = delta >= 0;
+  const now = Date.now();
+  const todayStr = todayUtc();
+
+  // ── Lecture atomique des compteurs (transaction) ──────────────────────────
+  const myLimitsRef = db.collection("users").doc(myUid).collection("limits").doc("daily");
+  const targetLimitsRef = db.collection("users").doc(targetUid).collection("limits").doc("daily");
+  const rarityRef = db.collection("users").doc(myUid).collection("limits")
+    .doc(`rarity_${targetUid}_${typeId}`);
+
+  let effectiveDelta: number;
+  let reward: number;
+
+  await db.runTransaction(async (tx) => {
+    const [mySnap, targetSnap, raritySnap] = await Promise.all([
+      tx.get(myLimitsRef),
+      tx.get(targetLimitsRef),
+      tx.get(rarityRef),
+    ]);
+
+    const myLimits = mySnap.exists
+      ? (mySnap.data() as { date?: string; positivesSent?: number; negativesSent?: number; rewardEarned?: number })
+      : {};
+    const myDate = myLimits.date ?? "";
+    const positiveSent = myDate === todayStr ? (myLimits.positivesSent ?? 0) : 0;
+    const negativeSent = myDate === todayStr ? (myLimits.negativesSent ?? 0) : 0;
+    const rewardEarned = myDate === todayStr ? (myLimits.rewardEarned ?? 0) : 0;
+
+    if (isPositive && positiveSent >= MAX_POSITIVES_PER_DAY)
+      throw new functions.https.HttpsError("resource-exhausted",
+        `Limite de ${MAX_POSITIVES_PER_DAY} signalements positifs atteinte`);
+    if (!isPositive && negativeSent >= MAX_NEGATIVES_PER_DAY)
+      throw new functions.https.HttpsError("resource-exhausted",
+        "Limite de 1 signalement négatif atteinte");
+
+    const cooldown = RARITY_COOLDOWN_MS[rarity] ?? 0;
+    const lastMs = raritySnap.exists ? (raritySnap.data()?.lastMs ?? 0) : 0;
+    if (now - lastMs < cooldown)
+      throw new functions.https.HttpsError("resource-exhausted", "Cooldown de rareté non écoulé");
+
+    const targetData = targetSnap.exists ? (targetSnap.data() as { date?: string; receivedLoss?: number }) : {};
+    const targetDate = targetData.date ?? "";
+    const receivedLoss = targetDate === todayStr ? (targetData.receivedLoss ?? 0) : 0;
+
+    effectiveDelta = isPositive
+      ? delta
+      : Math.max(delta, -(MAX_LOSS_PER_DAY - receivedLoss));
+
+    reward = isPositive
+      ? Math.min(REPORTER_REWARD, Math.max(0, MAX_REWARD_PER_DAY - rewardEarned))
+      : 0;
+
+    // Écriture de l'événement
+    const eventRef = db.collection("users").doc(targetUid).collection("events").doc();
+    tx.set(eventRef, {
+      id: eventRef.id,
+      targetUid,
+      authorUid: myUid,
+      authorName: (await db.collection("users").doc(myUid).get()).data()?.displayName ?? "",
+      typeId,
+      emoji,
+      label,
+      delta: effectiveDelta,
+      description: (description ?? "").trim(),
+      createdAt: now,
+    });
+
+    // Incréments de score
+    if (effectiveDelta !== 0)
+      tx.update(db.collection("users").doc(targetUid), {
+        auraScore: admin.firestore.FieldValue.increment(effectiveDelta),
+      });
+    if (reward > 0)
+      tx.update(db.collection("users").doc(myUid), {
+        auraScore: admin.firestore.FieldValue.increment(reward),
+      });
+
+    // Mise à jour des compteurs
+    tx.set(myLimitsRef, {
+      date: todayStr,
+      positivesSent: positiveSent + (isPositive ? 1 : 0),
+      negativesSent: negativeSent + (!isPositive ? 1 : 0),
+      rewardEarned: rewardEarned + reward,
+    });
+    if (!isPositive && effectiveDelta !== 0)
+      tx.set(targetLimitsRef, {
+        date: todayStr,
+        receivedLoss: receivedLoss + (-effectiveDelta),
+      }, { merge: true });
+    tx.set(rarityRef, { lastMs: now });
+  });
+
+  return { effectiveDelta: effectiveDelta!, reward: reward! };
+});
+
 // ── 7. Invitation de groupe ───────────────────────────────────────────────────
 // Déclenché à la création d'un document dans `groupInvites/{inviteId}`.
 // Notifie le destinataire.

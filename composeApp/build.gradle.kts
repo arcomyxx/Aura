@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
     kotlin("plugin.serialization") version "2.0.0"
 }
 
@@ -46,6 +47,7 @@ kotlin {
 
             implementation(project.dependencies.platform("com.google.firebase:firebase-bom:32.7.0"))
             implementation("com.google.firebase:firebase-messaging")
+            implementation("com.google.firebase:firebase-crashlytics")
             implementation("com.google.android.gms:play-services-auth:20.7.0")
         }
         commonMain.dependencies {
@@ -62,6 +64,7 @@ kotlin {
 
             implementation(libs.firebase.auth)
             implementation(libs.firebase.firestore)
+            implementation(libs.firebase.functions)
             implementation(libs.firebase.common)
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
@@ -98,7 +101,11 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
     compileOptions {

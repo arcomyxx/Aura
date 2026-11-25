@@ -103,7 +103,15 @@ fun App(pendingGroupToken: String? = null) {
                             // Vide toute la pile pour ne pas pouvoir revenir sur Main.
                             popUpTo(navController.graph.id) { inclusive = true }
                         }
-                    }
+                    },
+                    onDeleteAccount = {
+                        userViewModel.deleteAccount {
+                            AuraPalette.setAccent(null)
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                            }
+                        }
+                    },
                 )
             }
         }

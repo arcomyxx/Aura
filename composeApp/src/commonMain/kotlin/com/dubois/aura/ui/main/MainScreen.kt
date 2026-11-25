@@ -64,6 +64,7 @@ fun MainScreen(
     battleViewModel: BattleViewModel,
     pendingGroupToken: String? = null,
     onLogout: () -> Unit,
+    onDeleteAccount: (() -> Unit)? = null,
 ) {
     val me by viewModel.me.collectAsState()
     val leaderboard by viewModel.leaderboard.collectAsState()
@@ -179,6 +180,7 @@ fun MainScreen(
                 auraScore = me?.profile?.auraScore,
                 onEditProfile = { showEditProfile = true },
                 onLogout = onLogout,
+                onDeleteAccount = onDeleteAccount ?: {},
             )
             Spacer(Modifier.height(18.dp))
 

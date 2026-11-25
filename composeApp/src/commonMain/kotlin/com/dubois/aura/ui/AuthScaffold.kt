@@ -97,6 +97,7 @@ fun AuraTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    error: String? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -107,7 +108,29 @@ fun AuraTextField(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = auraTextFieldColors(),
+        isError = error != null,
+        supportingText = error?.let { { Text(it, color = AuraPalette.Negative, fontSize = 12.sp) } },
     )
+}
+
+/** Traduit les messages d'erreur Firebase en français. */
+fun localizeFirebaseError(raw: String): String = when {
+    raw.contains("INVALID_EMAIL", ignoreCase = true)
+        || raw.contains("invalid-email", ignoreCase = true)       -> "Adresse email invalide."
+    raw.contains("EMAIL_EXISTS", ignoreCase = true)
+        || raw.contains("email-already-in-use", ignoreCase = true) -> "Cette adresse est déjà utilisée."
+    raw.contains("WRONG_PASSWORD", ignoreCase = true)
+        || raw.contains("invalid-credential", ignoreCase = true)
+        || raw.contains("INVALID_LOGIN_CREDENTIALS", ignoreCase = true) -> "Email ou mot de passe incorrect."
+    raw.contains("USER_NOT_FOUND", ignoreCase = true)
+        || raw.contains("user-not-found", ignoreCase = true)       -> "Aucun compte trouvé avec cet email."
+    raw.contains("WEAK_PASSWORD", ignoreCase = true)
+        || raw.contains("weak-password", ignoreCase = true)        -> "Mot de passe trop faible (8 caractères min.)."
+    raw.contains("TOO_MANY_ATTEMPTS", ignoreCase = true)
+        || raw.contains("too-many-requests", ignoreCase = true)    -> "Trop de tentatives. Réessaie dans quelques minutes."
+    raw.contains("NETWORK_REQUEST_FAILED", ignoreCase = true)
+        || raw.contains("network-request-failed", ignoreCase = true) -> "Problème réseau. Vérifie ta connexion."
+    else -> "Une erreur est survenue. Réessaie."
 }
 
 @Composable

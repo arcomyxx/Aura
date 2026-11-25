@@ -284,8 +284,9 @@ class GroupRepository {
     suspend fun generateInviteLink(group: Group): Result<String> {
         return try {
             val uid = myUid() ?: return Result.failure(IllegalStateException("Non connecté"))
-            val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-            val token = (1..20).map { chars[kotlin.random.Random.nextInt(chars.length)] }.joinToString("")
+            val bytes = ByteArray(15)
+            java.security.SecureRandom().nextBytes(bytes)
+            val token = bytes.joinToString("") { "%02x".format(it) }
             val now = Clock.System.now().toEpochMilliseconds()
             val link = GroupLink(token = token, groupId = group.id, groupName = group.name, createdBy = uid, createdAt = now)
             firestore.collection("groupLinks").document(token).set(GroupLink.serializer(), link)
