@@ -16,12 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -280,7 +278,7 @@ private fun BottomNavItem(
 
 /**
  * En-tête commun aux trois onglets : label "AURA SCORE", nom en serif, avatar.
- * Le clic sur l'avatar ouvre un menu (modifier le profil / se déconnecter).
+ * Le clic sur l'avatar ouvre un menu (modifier le profil / compte).
  */
 @Composable
 fun AuraHeader(
@@ -291,36 +289,9 @@ fun AuraHeader(
     onEditProfile: () -> Unit = {},
     onLogout: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
+    onOpenAccount: () -> Unit = {},
 ) {
     var menuOpen by remember { mutableStateOf(false) }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-
-    if (showDeleteConfirm) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            containerColor = AuraPalette.Surface,
-            title = { Text("Supprimer le compte", color = AuraPalette.TextPrimary, fontWeight = FontWeight.Bold) },
-            text = {
-                Text(
-                    "Cette action est irréversible. Ton profil, tes events et ton score seront supprimés définitivement.",
-                    color = AuraPalette.TextSecondary,
-                )
-            },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = {
-                    showDeleteConfirm = false
-                    onDeleteAccount()
-                }) {
-                    Text("Supprimer", color = AuraPalette.Negative, fontWeight = FontWeight.SemiBold)
-                }
-            },
-            dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Annuler", color = AuraPalette.TextMuted)
-                }
-            },
-        )
-    }
 
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -352,28 +323,12 @@ fun AuraHeader(
                 containerColor = AuraPalette.SurfaceElevated,
             ) {
                 DropdownMenuItem(
-                    text = { Text("Modifier le profil", color = AuraPalette.TextPrimary, fontSize = 14.sp) },
+                    text = { Text("Mon compte", color = AuraPalette.TextPrimary, fontSize = 14.sp) },
                     onClick = {
                         menuOpen = false
-                        onEditProfile()
+                        onOpenAccount()
                     },
                     colors = MenuDefaults.itemColors(textColor = AuraPalette.TextPrimary),
-                )
-                DropdownMenuItem(
-                    text = { Text("Se déconnecter", color = AuraPalette.Negative, fontSize = 14.sp) },
-                    onClick = {
-                        menuOpen = false
-                        onLogout()
-                    },
-                    colors = MenuDefaults.itemColors(textColor = AuraPalette.Negative),
-                )
-                DropdownMenuItem(
-                    text = { Text("Supprimer le compte", color = AuraPalette.Negative.copy(alpha = 0.7f), fontSize = 14.sp) },
-                    onClick = {
-                        menuOpen = false
-                        showDeleteConfirm = true
-                    },
-                    colors = MenuDefaults.itemColors(textColor = AuraPalette.Negative),
                 )
             }
         }

@@ -291,7 +291,7 @@ fun EditProfileSheetContent(
 }
 
 @Composable
-private fun ColorSwatch(color: Color, selected: Boolean, onClick: () -> Unit, locked: Boolean = false) {
+fun ColorSwatch(color: Color, selected: Boolean, onClick: () -> Unit, locked: Boolean = false) {
     Box(
         modifier = Modifier
             .size(44.dp)

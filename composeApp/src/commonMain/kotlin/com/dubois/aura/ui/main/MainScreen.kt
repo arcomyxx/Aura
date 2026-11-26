@@ -55,7 +55,7 @@ import com.dubois.aura.viewmodel.MainViewModel
 import com.dubois.aura.viewmodel.PremiumViewModel
 
 private val TABS = listOf(
-    "Profil"  to "◉",
+    "Accueil" to "◉",
     "Groupes" to "⬡",
     "Battle"  to "⚔",
     "Amis"    to "✦",
@@ -115,6 +115,7 @@ fun MainScreen(
     var reportTarget by remember { mutableStateOf<RankedUser?>(null) }
     var showSheet by remember { mutableStateOf(false) }
     var showEditProfile by remember { mutableStateOf(false) }
+    var showAccountScreen by remember { mutableStateOf(false) }
     var editingEvent by remember { mutableStateOf<AuraEvent?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val editSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -194,6 +195,7 @@ fun MainScreen(
                 onEditProfile = { showEditProfile = true },
                 onLogout = onLogout,
                 onDeleteAccount = onDeleteAccount ?: {},
+                onOpenAccount = { showAccountScreen = true },
             )
             Spacer(Modifier.height(18.dp))
 
@@ -386,6 +388,22 @@ fun MainScreen(
                     },
                 )
             }
+        }
+
+        // Page Mon compte (superposée par-dessus les onglets)
+        if (showAccountScreen) {
+            AccountScreen(
+                profile = me?.profile,
+                isPremium = isPremium,
+                onUpgradePremium = { showPaywall = true },
+                onSave = { name, bio, photoUrl, themeColor ->
+                    viewModel.updateProfile(name, bio, photoUrl, themeColor)
+                    showAccountScreen = false
+                },
+                onLogout = onLogout,
+                onDeleteAccount = onDeleteAccount ?: {},
+                onBack = { showAccountScreen = false },
+            )
         }
 
         // Bandeau de message transitoire (demande envoyée, ami ajouté, erreur…)
