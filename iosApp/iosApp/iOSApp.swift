@@ -1,10 +1,12 @@
 import SwiftUI
 import FirebaseCore
+import ComposeApp
 
 @main
 struct iOSApp: App {
     init() {
-        FirebaseApp.configure()   // initialise Firebase a partir de GoogleService-Info.plist
+        FirebaseApp.configure()
+        MainViewControllerKt.configureRevenueCat()
     }
     var body: some Scene {
         WindowGroup {

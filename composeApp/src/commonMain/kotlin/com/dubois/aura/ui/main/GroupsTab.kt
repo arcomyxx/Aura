@@ -49,6 +49,7 @@ import com.dubois.aura.ui.components.AuraGauge
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.components.blockTouchesBehind
+import com.dubois.aura.ui.premium.PremiumUpsellBanner
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.color
 import com.dubois.aura.util.grouped
@@ -65,10 +66,13 @@ fun GroupsTab(
     onAcceptInvite: (GroupInvite) -> Unit,
     onDeclineInvite: (GroupInvite) -> Unit,
     onOpenGroup: (Group) -> Unit,
+    isPremium: Boolean = false,
+    onUpgradePremium: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var showCreate by remember { mutableStateOf(false) }
     var newGroupName by remember { mutableStateOf("") }
+    val atGroupLimit = !isPremium && groups.size >= 3
 
     LazyColumn(modifier = modifier.fillMaxWidth()) {
         item {
@@ -79,12 +83,23 @@ fun GroupsTab(
                 SectionLabel("🏆 Mes groupes", Modifier.weight(1f))
                 IconCircleButton(
                     icon = AuraIcon.Plus,
-                    onClick = { showCreate = !showCreate },
+                    onClick = {
+                        if (atGroupLimit) onUpgradePremium()
+                        else showCreate = !showCreate
+                    },
                     size = 36,
                     iconSize = 14,
                 )
             }
             Spacer(Modifier.height(10.dp))
+
+            if (atGroupLimit) {
+                PremiumUpsellBanner(
+                    message = "Groupes illimités avec Premium",
+                    onUpgrade = onUpgradePremium,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+            }
 
             if (showCreate) {
                 AuraCard(Modifier.fillMaxWidth()) {

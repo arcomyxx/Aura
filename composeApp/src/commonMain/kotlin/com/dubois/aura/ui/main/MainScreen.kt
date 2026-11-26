@@ -47,8 +47,12 @@ import com.dubois.aura.util.LocalShareBattle
 import com.dubois.aura.util.LocalInviteToBattle
 import com.dubois.aura.util.LocalShareGroupInvite
 import com.dubois.aura.util.signed
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.dubois.aura.repository.PremiumStatus
+import com.dubois.aura.ui.premium.PaywallScreen
 import com.dubois.aura.viewmodel.BattleViewModel
 import com.dubois.aura.viewmodel.MainViewModel
+import com.dubois.aura.viewmodel.PremiumViewModel
 
 private val TABS = listOf(
     "Profil"  to "◉",
@@ -62,6 +66,7 @@ private val TABS = listOf(
 fun MainScreen(
     viewModel: MainViewModel,
     battleViewModel: BattleViewModel,
+    premiumViewModel: PremiumViewModel = viewModel(),
     pendingGroupToken: String? = null,
     onLogout: () -> Unit,
     onDeleteAccount: (() -> Unit)? = null,
@@ -97,6 +102,14 @@ fun MainScreen(
     val hype by battleViewModel.hype.collectAsState()
     val launching by battleViewModel.launching.collectAsState()
     val battleMessage by battleViewModel.message.collectAsState()
+
+    val premiumStatus by premiumViewModel.premiumStatus.collectAsState()
+    val isPremium = premiumStatus is PremiumStatus.Active
+    var showPaywall by remember { mutableStateOf(false) }
+
+    if (showPaywall) {
+        PaywallScreen(onDismiss = { showPaywall = false }, premiumViewModel = premiumViewModel)
+    }
 
     var selectedTab by remember { mutableStateOf(0) }
     var reportTarget by remember { mutableStateOf<RankedUser?>(null) }
@@ -189,6 +202,8 @@ fun MainScreen(
                     me = me,
                     events = events,
                     weeklyDelta = weeklyDelta,
+                    isPremium = isPremium,
+                    onUpgradePremium = { showPaywall = true },
                     modifier = Modifier.weight(1f),
                 )
                 1 -> GroupsTab(
@@ -200,6 +215,8 @@ fun MainScreen(
                     onAcceptInvite = viewModel::acceptGroupInvite,
                     onDeclineInvite = viewModel::declineGroupInvite,
                     onOpenGroup = viewModel::openGroup,
+                    isPremium = isPremium,
+                    onUpgradePremium = { showPaywall = true },
                     modifier = Modifier.weight(1f),
                 )
                 2 -> {
@@ -274,6 +291,8 @@ fun MainScreen(
             ) {
                 EditProfileSheetContent(
                     profile = me?.profile,
+                    isPremium = isPremium,
+                    onUpgradePremium = { showEditProfile = false; showPaywall = true },
                     onDismiss = { showEditProfile = false },
                     onSubmit = { name, bio, photoUrl, themeColor ->
                         viewModel.updateProfile(name, bio, photoUrl, themeColor)

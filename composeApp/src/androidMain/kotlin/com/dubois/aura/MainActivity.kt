@@ -19,6 +19,9 @@ import com.dubois.aura.util.shareBattleCard
 import com.dubois.aura.util.shareGroupInvite
 import com.dubois.aura.util.shareProfileCard
 import com.google.firebase.messaging.FirebaseMessaging
+import com.revenuecat.purchases.kmp.LogLevel
+import com.revenuecat.purchases.kmp.Purchases
+import com.revenuecat.purchases.kmp.PurchasesConfiguration
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
@@ -30,6 +33,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         createNotificationChannel()
+        configureRevenueCat()
 
         val pendingToken = intent?.data?.takeIf { it.scheme == "aura" && it.host == "join" }
             ?.lastPathSegment
@@ -68,6 +72,18 @@ class MainActivity : ComponentActivity() {
                         .update(mapOf("fcmToken" to token))
                 }
             }
+        }
+    }
+
+    private fun configureRevenueCat() {
+        Purchases.logLevel = LogLevel.DEBUG
+        Purchases.configure(
+            PurchasesConfiguration.Builder(
+                apiKey = "test_uGOweGBWHBsvJwBAKxnTXHkDuwt",
+            ).build()
+        )
+        Firebase.auth.currentUser?.uid?.let { uid ->
+            Purchases.sharedInstance.logIn(uid, onError = { _ -> }) { _, _ -> }
         }
     }
 

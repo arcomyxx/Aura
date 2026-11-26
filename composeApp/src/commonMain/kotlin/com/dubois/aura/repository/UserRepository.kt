@@ -5,6 +5,7 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.GoogleAuthProvider
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
+import dev.gitlive.firebase.firestore.where
 import kotlin.time.Clock
 
 class UserRepository {
@@ -98,7 +99,7 @@ class UserRepository {
         if (uids.isEmpty()) return emptyList()
         return uids.chunked(30).flatMap { batch ->
             firestore.collection("users")
-                .where { "uid" inArray batch }
+                .where("uid", inArray = batch.map { it as Any })
                 .get().documents
                 .map { it.data(UserProfile.serializer()) }
                 .filter { it.uid.isNotEmpty() }

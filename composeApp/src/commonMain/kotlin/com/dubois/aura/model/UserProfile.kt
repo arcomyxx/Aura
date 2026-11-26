@@ -11,5 +11,8 @@ data class UserProfile(
     val bio: String = "",
     val themeColor: String = "",
     val createdAt: Long = 0L,
-    val auraScore: Int = 0
+    val auraScore: Int = 0,
+    val isPremium: Boolean = false,
+    val premiumExpiresAt: Long? = null,
+    val premiumEntitlementId: String = "",
 )

@@ -33,6 +33,7 @@ import com.dubois.aura.model.RankedUser
 import com.dubois.aura.ui.components.AuraCard
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
+import com.dubois.aura.ui.premium.PremiumBadge
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.color
 import com.dubois.aura.util.grouped
@@ -226,6 +227,10 @@ private fun LeaderboardRow(user: RankedUser) {
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp,
                     )
+                    if (user.profile.isPremium) {
+                        Spacer(Modifier.width(5.dp))
+                        PremiumBadge()
+                    }
                     if (user.isMe) {
                         Spacer(Modifier.width(6.dp))
                         Text("(toi)", color = AuraPalette.TextMuted, fontSize = 12.sp)

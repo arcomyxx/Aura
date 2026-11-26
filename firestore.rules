@@ -10,11 +10,13 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == userId;
 
-      // Le propriétaire modifie librement son profil. Les autres utilisateurs
-      // connectés ne peuvent modifier QUE le champ `auraScore` (mécanique de
-      // signalement d'événements entre amis).
+      // Le propriétaire modifie librement son profil, sauf les champs premium
+      // (isPremium, premiumExpiresAt, premiumEntitlementId) réservés au serveur.
+      // Les autres utilisateurs connectés ne peuvent modifier QUE `auraScore`.
       allow update: if request.auth != null && (
-                      request.auth.uid == userId
+                      (request.auth.uid == userId
+                        && !request.resource.data.diff(resource.data)
+                              .affectedKeys().hasAny(['isPremium', 'premiumExpiresAt', 'premiumEntitlementId']))
                       || request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(['auraScore'])
                     );

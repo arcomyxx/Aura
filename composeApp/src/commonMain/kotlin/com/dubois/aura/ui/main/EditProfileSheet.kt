@@ -44,7 +44,9 @@ import com.dubois.aura.model.UserProfile
 import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.components.clickableNoRipple
+import com.dubois.aura.ui.premium.PremiumBadge
 import com.dubois.aura.ui.theme.AccentPresets
+import com.dubois.aura.ui.theme.PremiumAccentPresets
 import com.dubois.aura.ui.components.AuraIcon
 import com.dubois.aura.ui.components.IconCircleButton
 import com.dubois.aura.ui.theme.AuraPalette
@@ -67,6 +69,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun EditProfileSheetContent(
     profile: UserProfile?,
+    isPremium: Boolean = false,
+    onUpgradePremium: () -> Unit = {},
     onDismiss: () -> Unit,
     onSubmit: (name: String, bio: String, photoUrl: String, themeColor: String) -> Unit,
 ) {
@@ -210,6 +214,32 @@ fun EditProfileSheetContent(
             }
             Spacer(Modifier.height(12.dp))
         }
+        // Couleurs exclusives Premium
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SectionLabel("Exclusif")
+            Spacer(Modifier.width(6.dp))
+            PremiumBadge()
+        }
+        Spacer(Modifier.height(10.dp))
+        PremiumAccentPresets.chunked(5).forEach { rowColors ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                rowColors.forEach { preset ->
+                    ColorSwatch(
+                        color = preset,
+                        selected = selectedHex == preset.toHex(),
+                        onClick = {
+                            if (isPremium) themeHex = preset.toHex()
+                            else onUpgradePremium()
+                        },
+                        locked = !isPremium,
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -261,12 +291,12 @@ fun EditProfileSheetContent(
 }
 
 @Composable
-private fun ColorSwatch(color: Color, selected: Boolean, onClick: () -> Unit) {
+private fun ColorSwatch(color: Color, selected: Boolean, onClick: () -> Unit, locked: Boolean = false) {
     Box(
         modifier = Modifier
             .size(44.dp)
             .clip(CircleShape)
-            .background(color)
+            .background(if (locked) color.copy(alpha = 0.35f) else color)
             .border(
                 BorderStroke(
                     if (selected) 3.dp else 1.dp,
@@ -275,7 +305,12 @@ private fun ColorSwatch(color: Color, selected: Boolean, onClick: () -> Unit) {
                 CircleShape,
             )
             .clickable(onClick = onClick),
-    )
+        contentAlignment = Alignment.Center,
+    ) {
+        if (locked) {
+            Text("🔒", fontSize = 14.sp)
+        }
+    }
 }
 
 @Composable

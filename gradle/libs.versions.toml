@@ -14,7 +14,8 @@ composeMultiplatform = "1.10.0"
 filekit = "0.14.0" # 0.14.2 est compile avec Kotlin 2.4.0 (abi 2.4.0) => klib iOS rejete par Kotlin 2.3.0
 gitliveVersion = "1.11.1"
 junit = "4.13.2"
-kotlin = "2.3.0"
+kotlin = "2.3.20"
+revenuecat = "1.8.5+13.38.1"
 kotlinx-coroutines = "1.10.2"
 kotlinxSerializationJson = "1.6.3"
 ktor = "3.3.3"
@@ -54,6 +55,8 @@ ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+revenuecat-kmp = { module = "com.revenuecat.purchases:purchases-kmp-core", version.ref = "revenuecat" }
+revenuecat-ui = { module = "com.revenuecat.purchases:purchases-kmp-ui", version.ref = "revenuecat" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

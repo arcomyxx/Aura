@@ -49,6 +49,8 @@ import com.dubois.aura.ui.components.InitialsAvatar
 import com.dubois.aura.ui.components.SectionLabel
 import com.dubois.aura.ui.components.clickableNoRipple
 import com.dubois.aura.ui.main.GradientButton
+import com.dubois.aura.ui.premium.AnimatedPremiumFrame
+import com.dubois.aura.ui.premium.PremiumBadge
 import com.dubois.aura.ui.theme.AuraPalette
 import com.dubois.aura.ui.theme.color
 import com.dubois.aura.ui.theme.toHex
@@ -62,6 +64,8 @@ fun ProfileTab(
     me: RankedUser?,
     events: List<AuraEvent>,
     weeklyDelta: Int,
+    isPremium: Boolean = false,
+    onUpgradePremium: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val tier = me?.tier
@@ -120,7 +124,13 @@ fun ProfileTab(
                         )
                     },
             ) {
-                AuraGauge(score = me?.profile?.auraScore ?: 0, tierColor = tierColor, diameter = 240)
+                if (isPremium) {
+                    AnimatedPremiumFrame(size = 240.dp, strokeWidth = 3.dp) {
+                        AuraGauge(score = me?.profile?.auraScore ?: 0, tierColor = tierColor, diameter = 240)
+                    }
+                } else {
+                    AuraGauge(score = me?.profile?.auraScore ?: 0, tierColor = tierColor, diameter = 240)
+                }
             }
             Spacer(Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -131,6 +141,10 @@ fun ProfileTab(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
                 )
+                if (isPremium) {
+                    Spacer(Modifier.width(6.dp))
+                    PremiumBadge(fontSize = 12.sp)
+                }
                 Spacer(Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
