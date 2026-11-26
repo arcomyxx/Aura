@@ -249,17 +249,28 @@ fun EditProfileSheetContent(
                     .border(BorderStroke(1.dp, AuraPalette.CardBorder), CircleShape),
             )
             Spacer(Modifier.width(12.dp))
-            OutlinedTextField(
-                value = themeHex,
-                onValueChange = { themeHex = it.take(7) },
-                placeholder = { Text("#FFA31A", color = AuraPalette.TextMuted) },
-                singleLine = true,
-                prefix = { Text("#", color = AuraPalette.TextMuted) },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(14.dp),
-                isError = themeHex.isNotBlank() && colorFromHex(themeHex) == null,
-                colors = editFieldColors(),
-            )
+            Box(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = themeHex,
+                    onValueChange = { if (isPremium) themeHex = it.take(7) },
+                    readOnly = !isPremium,
+                    placeholder = { Text("#FFA31A", color = AuraPalette.TextMuted) },
+                    singleLine = true,
+                    prefix = { Text("#", color = AuraPalette.TextMuted) },
+                    trailingIcon = if (!isPremium) ({ PremiumBadge() }) else null,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    isError = isPremium && themeHex.isNotBlank() && colorFromHex(themeHex) == null,
+                    colors = editFieldColors(),
+                )
+                if (!isPremium) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { onUpgradePremium() },
+                    )
+                }
+            }
         }
         Spacer(Modifier.height(24.dp))
 

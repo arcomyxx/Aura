@@ -29,6 +29,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Image
+import org.jetbrains.compose.resources.painterResource
+import aura.composeapp.generated.resources.Res
+import aura.composeapp.generated.resources.ic_aura_flame
 import com.dubois.aura.ui.components.AuraIcon
 import com.dubois.aura.ui.components.IconCircleButton
 import com.dubois.aura.ui.theme.AuraPalette
@@ -65,7 +70,13 @@ fun AuthScaffold(
                 .padding(horizontal = 24.dp),
         ) {
             IconCircleButton(icon = AuraIcon.Back, onClick = onBack)
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(24.dp))
+            Image(
+                painter = painterResource(Res.drawable.ic_aura_flame),
+                contentDescription = null,
+                modifier = Modifier.size(72.dp).align(Alignment.CenterHorizontally),
+            )
+            Spacer(Modifier.height(16.dp))
             Text(
                 text = title,
                 color = AuraPalette.TextPrimary,
