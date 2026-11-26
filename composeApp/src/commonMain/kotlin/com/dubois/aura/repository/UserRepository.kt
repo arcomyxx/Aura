@@ -20,7 +20,6 @@ class UserRepository {
             val profile = UserProfile(
                 uid = uid,
                 displayName = name,
-                email = email,
                 auraScore = 100,
                 createdAt = Clock.System.now().toEpochMilliseconds(),
             )
@@ -60,7 +59,13 @@ class UserRepository {
             docRef.set(UserProfile.serializer(), fallback)
             return fallback
         }
-        return doc.data(UserProfile.serializer())
+        val profile = doc.data(UserProfile.serializer())
+        // Injecte l'email depuis Firebase Auth pour l'utilisateur courant uniquement.
+        return if (profile.uid == auth.currentUser?.uid) {
+            profile.copy(email = auth.currentUser?.email ?: "")
+        } else {
+            profile.copy(email = "")
+        }
     }
 
     suspend fun updateProfile(
@@ -86,15 +91,18 @@ class UserRepository {
     }
 
     /**
-     * Tous les utilisateurs, triés par score d'aura décroissant.
-     * Sert au classement global et aux scores affichés dans l'onglet Amis.
+     * Récupère les profils d'une liste d'UIDs (par lots de 30, limite Firestore whereIn).
+     * Trie par score décroissant côté client.
      */
-    suspend fun allUsersRanked(): List<UserProfile> {
-        return firestore.collection("users")
-            .get().documents
-            .map { it.data(UserProfile.serializer()) }
-            .filter { it.uid.isNotEmpty() }
-            .sortedByDescending { it.auraScore }
+    suspend fun fetchProfiles(uids: List<String>): List<UserProfile> {
+        if (uids.isEmpty()) return emptyList()
+        return uids.chunked(30).flatMap { batch ->
+            firestore.collection("users")
+                .where { "uid" inArray batch }
+                .get().documents
+                .map { it.data(UserProfile.serializer()) }
+                .filter { it.uid.isNotEmpty() }
+        }.sortedWith(compareByDescending<UserProfile> { it.auraScore }.thenByDescending { it.isPremium })
     }
 
     /** Connexion via Google Sign-In ; crée le profil Firestore si c'est la première fois. */
@@ -110,7 +118,6 @@ class UserRepository {
                 val profile = UserProfile(
                     uid = uid,
                     displayName = user.displayName ?: "",
-                    email = user.email ?: "",
                     auraScore = 100,
                     createdAt = Clock.System.now().toEpochMilliseconds(),
                 )

@@ -15,6 +15,8 @@ import com.dubois.aura.repository.EventRepository
 import com.dubois.aura.repository.FriendRepository
 import com.dubois.aura.repository.GroupRepository
 import com.dubois.aura.repository.UserRepository
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.functions.functions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -100,43 +102,46 @@ class MainViewModel : ViewModel() {
     fun load() {
         viewModelScope.launch {
             _loading.value = true
-            val myUid = userRepo.currentUser()?.uid
+            runCatching {
+                val myUid = userRepo.currentUser()?.uid
 
-            // Rang global (parmi tous les utilisateurs) -> profil & onglet Amis.
-            val all = userRepo.allUsersRanked()
-            val ranked = all.mapIndexed { index, profile ->
-                RankedUser(profile, rank = index + 1, isMe = profile.uid == myUid)
-            }
-            _me.value = ranked.firstOrNull { it.isMe }
+                // On ne charge que moi + mes amis (évite de lire toute la collection users).
+                val friendUids = friendRepo.friends().map { it.uid }.toSet()
+                val uidsToFetch = (friendUids + listOfNotNull(myUid)).toList()
+                val profiles = userRepo.fetchProfiles(uidsToFetch)
 
-            // Amis = intersection classement global / liste d'amis, dans l'ordre du classement.
-            val friendUids = friendRepo.friends().map { it.uid }.toSet()
-            _friends.value = ranked.filter { it.profile.uid in friendUids }
-
-            // Classement affiché = moi + mes amis uniquement, re-classés 1..N
-            // (exclut les autres utilisateurs, dont les comptes de test).
-            _leaderboard.value = all
-                .filter { it.uid == myUid || it.uid in friendUids }
-                .mapIndexed { index, profile ->
+                // Classement affiché = moi + amis, triés par score.
+                val ranked = profiles.mapIndexed { index, profile ->
                     RankedUser(profile, rank = index + 1, isMe = profile.uid == myUid)
                 }
+                _me.value = ranked.firstOrNull { it.isMe }
+                _friends.value = ranked.filter { it.profile.uid in friendUids }
+                _leaderboard.value = ranked
 
-            // Demandes d'ami reçues.
-            _requests.value = friendRepo.incomingRequests()
+                // Demandes d'ami reçues.
+                _requests.value = friendRepo.incomingRequests()
 
-            // Groupes & invitations.
-            groupRepo.myGroups().onSuccess { _groups.value = it }
-            groupRepo.incomingInvites().onSuccess { _groupInvites.value = it }
+                // Groupes & invitations.
+                groupRepo.myGroups().onSuccess { _groups.value = it }
+                groupRepo.incomingInvites().onSuccess { _groupInvites.value = it }
 
-            // Événements reçus + delta hebdo.
-            if (myUid != null) {
-                val recent = eventRepo.recentEvents(myUid)
-                _events.value = recent
-                val weekAgo = Clock.System.now().toEpochMilliseconds() - 7L * 24 * 60 * 60 * 1000
-                _weeklyDelta.value = recent.filter { it.createdAt >= weekAgo }.sumOf { it.delta }
+                // Événements reçus + delta hebdo.
+                if (myUid != null) {
+                    val recent = eventRepo.recentEvents(myUid)
+                    _events.value = recent
+                    val weekAgo = Clock.System.now().toEpochMilliseconds() - 7L * 24 * 60 * 60 * 1000
+                    _weeklyDelta.value = recent.filter { it.createdAt >= weekAgo }.sumOf { it.delta }
+                }
+
+                _dailyLimits.value = eventRepo.myDailyLimits()
+            }.onFailure { e ->
+                _message.value = when {
+                    e.message?.contains("UNAVAILABLE", ignoreCase = true) == true ||
+                    e.message?.contains("network", ignoreCase = true) == true ->
+                        "Pas de connexion — données possiblement obsolètes"
+                    else -> "Erreur de chargement : ${e.message}"
+                }
             }
-
-            _dailyLimits.value = eventRepo.myDailyLimits()
             _loading.value = false
         }
     }
@@ -161,7 +166,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             friendRepo.sendFriendRequest(target)
                 .onSuccess {
-                    _message.value = "Demande envoyée à ${target.displayName.ifBlank { target.email }}"
+                    _message.value = "Demande envoyée à ${target.displayName.ifBlank { "cet utilisateur" }}"
                     _searchResults.value = _searchResults.value.filterNot { it.uid == target.uid }
                 }
                 .onFailure { _message.value = it.message }
@@ -173,7 +178,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             friendRepo.acceptRequest(request)
                 .onSuccess {
-                    _message.value = "${request.fromName.ifBlank { request.fromEmail }} est maintenant votre ami"
+                    _message.value = "${request.fromName.ifBlank { "Utilisateur" }} est maintenant votre ami"
                     load()
                 }
                 .onFailure { _message.value = it.message }
@@ -282,19 +287,21 @@ class MainViewModel : ViewModel() {
 
     fun createGroup(name: String) {
         viewModelScope.launch {
-            groupRepo.createGroup(name)
-                .onSuccess {
-                    _message.value = "Groupe « ${it.name} » créé !"
-                    groupRepo.myGroups().onSuccess { list -> _groups.value = list }
-                }
-                .onFailure { _message.value = it.message }
+            runCatching {
+                Firebase.functions
+                    .httpsCallable("createGroup")
+                    .invoke(mapOf("name" to name))
+                // La CF retourne { groupId } — on recharge la liste depuis Firestore
+                groupRepo.myGroups().onSuccess { list -> _groups.value = list }
+                _message.value = "Groupe « $name » créé !"
+            }.onFailure { _message.value = it.message }
         }
     }
 
     fun inviteToGroup(group: Group, target: UserProfile) {
         viewModelScope.launch {
             groupRepo.inviteToGroup(group, target)
-                .onSuccess { _message.value = "${target.displayName.ifBlank { target.email }} invité dans ${group.name}" }
+                .onSuccess { _message.value = "${target.displayName.ifBlank { "Utilisateur" }} invité dans ${group.name}" }
                 .onFailure { _message.value = it.message }
         }
     }

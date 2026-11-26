@@ -28,10 +28,9 @@ class FriendRepository {
             if (q.isEmpty()) return Result.success(emptyList())
 
             val users = firestore.collection("users")
-            val byEmail = users.where { "email" equalTo q }.get().documents
             val byName = users.where { "displayName" equalTo q }.get().documents
 
-            val merged = (byEmail + byName)
+            val merged = byName
                 .map { it.data(UserProfile.serializer()) }
                 .filter { it.uid.isNotEmpty() && it.uid != me }
                 .distinctBy { it.uid }
@@ -58,10 +57,8 @@ class FriendRepository {
                 id = docRef.id,
                 fromUid = myUid,
                 fromName = me.displayName,
-                fromEmail = me.email,
                 toUid = target.uid,
                 toName = target.displayName,
-                toEmail = target.email,
                 status = "pending",
                 createdAt = Clock.System.now().toEpochMilliseconds(),
             )
@@ -100,7 +97,7 @@ class FriendRepository {
                 .collection("friends").document(request.fromUid)
                 .set(
                     Friend.serializer(),
-                    Friend(request.fromUid, request.fromName, request.fromEmail, since = now)
+                    Friend(request.fromUid, request.fromName, since = now)
                 )
 
             // Je deviens l'ami de l'expéditeur.
@@ -108,7 +105,7 @@ class FriendRepository {
                 .collection("friends").document(myUid)
                 .set(
                     Friend.serializer(),
-                    Friend(request.toUid, request.toName, request.toEmail, since = now)
+                    Friend(request.toUid, request.toName, since = now)
                 )
 
             Result.success(Unit)
