@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions/v2";
+import * as functionsV1 from "firebase-functions/v1";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -247,8 +248,11 @@ export const onFriendRequestAccepted = functions.firestore.onDocumentUpdated(
 // Remplace la logique côté client : valide les limites anti-abus côté serveur,
 // écrit l'événement et incrémente les scores de manière atomique.
 
-const MAX_POSITIVES_PER_DAY = 3;
-const MAX_NEGATIVES_PER_DAY = 1;
+const MAX_POSITIVES_FREE = 3;
+const MAX_POSITIVES_PREMIUM = 5;
+const MAX_NEGATIVES_FREE = 1;
+const MAX_NEGATIVES_PREMIUM = 2;
+const MAX_FREE_GROUPS = 3;
 const MAX_REWARD_PER_DAY = 10;
 const MAX_LOSS_PER_DAY = 50;
 const REPORTER_REWARD = 2;
@@ -289,6 +293,12 @@ export const reportEvent = functions.https.onCall(async (request) => {
   const now = Date.now();
   const todayStr = todayUtc();
 
+  // Lire le statut premium de l'appelant (hors transaction pour éviter les lectures async dedans)
+  const callerDoc = await db.collection("users").doc(myUid).get();
+  const isPremium = callerDoc.data()?.isPremium ?? false;
+  const maxPositives = isPremium ? MAX_POSITIVES_PREMIUM : MAX_POSITIVES_FREE;
+  const maxNegatives = isPremium ? MAX_NEGATIVES_PREMIUM : MAX_NEGATIVES_FREE;
+
   // ── Lecture atomique des compteurs (transaction) ──────────────────────────
   const myLimitsRef = db.collection("users").doc(myUid).collection("limits").doc("daily");
   const targetLimitsRef = db.collection("users").doc(targetUid).collection("limits").doc("daily");
@@ -313,12 +323,12 @@ export const reportEvent = functions.https.onCall(async (request) => {
     const negativeSent = myDate === todayStr ? (myLimits.negativesSent ?? 0) : 0;
     const rewardEarned = myDate === todayStr ? (myLimits.rewardEarned ?? 0) : 0;
 
-    if (isPositive && positiveSent >= MAX_POSITIVES_PER_DAY)
+    if (isPositive && positiveSent >= maxPositives)
       throw new functions.https.HttpsError("resource-exhausted",
-        `Limite de ${MAX_POSITIVES_PER_DAY} signalements positifs atteinte`);
-    if (!isPositive && negativeSent >= MAX_NEGATIVES_PER_DAY)
+        `Limite de ${maxPositives} signalements positifs atteinte`);
+    if (!isPositive && negativeSent >= maxNegatives)
       throw new functions.https.HttpsError("resource-exhausted",
-        "Limite de 1 signalement négatif atteinte");
+        `Limite de ${maxNegatives} signalement(s) négatif(s) atteinte`);
 
     const cooldown = RARITY_COOLDOWN_MS[rarity] ?? 0;
     const lastMs = raritySnap.exists ? (raritySnap.data()?.lastMs ?? 0) : 0;
@@ -379,6 +389,177 @@ export const reportEvent = functions.https.onCall(async (request) => {
 
   return { effectiveDelta: effectiveDelta!, reward: reward! };
 });
+
+// ── Webhook RevenueCat ────────────────────────────────────────────────────────
+// Met à jour isPremium dans Firestore à chaque événement d'abonnement.
+// Configurer l'URL dans le dashboard RevenueCat → Integrations → Webhooks.
+// La clé secrète doit être stockée dans Firebase Secret Manager sous la clé
+// "REVENUECAT_WEBHOOK_SECRET" et passée via runWith({ secrets: [...] }).
+
+export const onRevenueCatEvent = functions.https.onRequest(async (req, res) => {
+  if (req.method !== "POST") { res.status(405).send("Method Not Allowed"); return; }
+
+  const secret = process.env.REVENUECAT_WEBHOOK_SECRET;
+  if (secret) {
+    const authHeader = req.headers.authorization ?? "";
+    if (authHeader !== secret) {
+      functions.logger.warn("RevenueCat webhook: signature invalide");
+      res.status(401).send("Unauthorized");
+      return;
+    }
+  }
+
+  const body = req.body as {
+    event?: {
+      type?: string;
+      app_user_id?: string;
+      expiration_at_ms?: number | null;
+      entitlement_ids?: string[];
+    };
+  };
+
+  const event = body.event;
+  if (!event?.app_user_id) { res.status(400).send("Bad Request"); return; }
+
+  const uid = event.app_user_id;
+  const eventType = event.type ?? "";
+
+  const ACTIVATE_EVENTS = ["INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION", "SUBSCRIPTION_PAUSED"];
+  const DEACTIVATE_EVENTS = ["EXPIRATION", "CANCELLATION", "SUBSCRIBER_ALIAS"];
+
+  if (ACTIVATE_EVENTS.includes(eventType)) {
+    await db.collection("users").doc(uid).update({
+      isPremium: true,
+      premiumExpiresAt: event.expiration_at_ms ?? null,
+      premiumEntitlementId: (event.entitlement_ids ?? ["premium"])[0],
+    });
+    functions.logger.info("Premium activé", { uid, eventType });
+  } else if (DEACTIVATE_EVENTS.includes(eventType)) {
+    await db.collection("users").doc(uid).update({
+      isPremium: false,
+      premiumExpiresAt: null,
+      premiumEntitlementId: "",
+    });
+    functions.logger.info("Premium désactivé", { uid, eventType });
+  }
+
+  res.status(200).send("OK");
+});
+
+// ── Création de groupe (callable) ─────────────────────────────────────────────
+// Vérifie la limite de groupes côté serveur (Free: 3, Premium: illimité).
+
+export const createGroup = functions.https.onCall(async (request) => {
+  const auth = request.auth;
+  if (!auth) throw new functions.https.HttpsError("unauthenticated", "Non authentifié");
+
+  const { name } = request.data as { name: string };
+  if (!name?.trim()) throw new functions.https.HttpsError("invalid-argument", "Nom invalide");
+
+  const uid = auth.uid;
+  const userDoc = await db.collection("users").doc(uid).get();
+  const isPremium = userDoc.data()?.isPremium ?? false;
+
+  if (!isPremium) {
+    const groupsSnap = await db.collection("groups")
+      .where("memberUids", "array-contains", uid)
+      .count()
+      .get();
+    if (groupsSnap.data().count >= MAX_FREE_GROUPS)
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        `Limite de ${MAX_FREE_GROUPS} groupes atteinte. Passe à Premium pour des groupes illimités.`,
+      );
+  }
+
+  const docRef = db.collection("groups").doc();
+  const now = Date.now();
+  const displayName = userDoc.data()?.displayName ?? "";
+  const photoUrl = userDoc.data()?.photoUrl ?? "";
+
+  await db.runTransaction(async (tx) => {
+    tx.set(docRef, {
+      id: docRef.id,
+      name: name.trim(),
+      createdBy: uid,
+      createdAt: now,
+      memberUids: [uid],
+    });
+    tx.set(
+      db.collection("groups").doc(docRef.id).collection("members").doc(uid),
+      { uid, displayName, photoUrl, groupAuraScore: 0 },
+    );
+  });
+
+  return { groupId: docRef.id };
+});
+
+// ── 8. Suppression de compte ──────────────────────────────────────────────────
+// Déclenché automatiquement quand un compte Firebase Auth est supprimé.
+// Efface toutes les données personnelles de l'utilisateur (RGPD + exigence Apple).
+//
+// Données supprimées :
+//   - users/{uid} + sous-collections (events, friends, limits)
+//   - friendRequests impliquant cet uid
+//   - groupInvites impliquant cet uid
+//   - groupLinks créés par cet uid
+//   - présence dans chaque groupe (membres + tableau memberUids)
+//   - groupes dont il était le seul membre (suppression complète)
+//   - battles hébergées par cet uid
+
+export const onDeleteUser = functionsV1.auth.user().onDelete(async (user) => {
+  const uid = user.uid;
+  functions.logger.info("Suppression du compte, nettoyage données", { uid });
+
+  // 1. Profil + sous-collections (events, friends, limits) via recursiveDelete.
+  await db.recursiveDelete(db.collection("users").doc(uid));
+
+  // 2. Demandes d'ami envoyées ou reçues.
+  await deleteWhere("friendRequests", "fromUid", uid);
+  await deleteWhere("friendRequests", "toUid", uid);
+
+  // 3. Invitations de groupe envoyées ou reçues.
+  await deleteWhere("groupInvites", "fromUid", uid);
+  await deleteWhere("groupInvites", "toUid", uid);
+
+  // 4. Liens d'invitation créés par cet utilisateur.
+  await deleteWhere("groupLinks", "createdBy", uid);
+
+  // 5. Battles hébergées.
+  await deleteWhere("battles", "hostUid", uid);
+
+  // 6. Groupes : retirer l'uid du tableau memberUids ; supprimer si dernier membre.
+  const groupsSnap = await db.collection("groups")
+    .where("memberUids", "array-contains", uid)
+    .get();
+
+  await Promise.all(groupsSnap.docs.map(async (doc) => {
+    const data = doc.data();
+    const remaining: string[] = (data.memberUids ?? []).filter((u: string) => u !== uid);
+
+    if (remaining.length === 0) {
+      await db.recursiveDelete(doc.ref);
+    } else {
+      const batch = db.batch();
+      batch.update(doc.ref, { memberUids: remaining });
+      batch.delete(doc.ref.collection("members").doc(uid));
+      await batch.commit();
+    }
+  }));
+});
+
+/** Supprime tous les docs d'une collection dont [field] == [value]. */
+async function deleteWhere(
+  collection: string,
+  field: string,
+  value: string,
+): Promise<void> {
+  const snap = await db.collection(collection).where(field, "==", value).get();
+  if (snap.empty) return;
+  const batch = db.batch();
+  snap.docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+}
 
 // ── 7. Invitation de groupe ───────────────────────────────────────────────────
 // Déclenché à la création d'un document dans `groupInvites/{inviteId}`.
